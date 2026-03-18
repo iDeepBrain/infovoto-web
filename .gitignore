@@ -27,3 +27,22 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+# Credenciales y llaves
+*.env
+*.pem
+*.key
+*.p12
+*credentials*.json
+*service_account*.json
+*service-account*.json
+
+# Datos binarios y archivos pesados
+*.pdf
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.db
+*.sqlite
+*.ipynb_checkpoints
