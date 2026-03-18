@@ -22,6 +22,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [disclaimerDismissed, setDisclaimerDismissed] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,6 +76,20 @@ export default function ChatPage() {
         <span className="font-bold text-lg">InfoVoto</span>
         <span className="text-sm text-gray-500">Perú 2026</span>
       </header>
+
+      {/* Disclaimer banner */}
+      {!disclaimerDismissed && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3 flex items-start justify-between text-sm text-yellow-800">
+          <p>
+            <strong>InfoVoto es una herramienta educativa.</strong> La IA puede cometer errores — verifica siempre en{" "}
+            <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">JNE</a>{" "}
+            y{" "}
+            <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">ONPE</a>.
+            Tus consultas se almacenan de forma anónima para mejorar el sistema.
+          </p>
+          <button onClick={() => setDisclaimerDismissed(true)} className="ml-4 shrink-0 font-bold">✕</button>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
