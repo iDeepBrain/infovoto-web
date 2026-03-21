@@ -241,10 +241,14 @@ export default function ChatPage() {
       return;
     }
 
-    log.info("Token found", { tokenLen: idToken.length });
+    log.info("Token found", { tokenLen: idToken.length, firstChars: idToken.slice(0, 20) });
 
     // Check for expired token before sending
-    if (isTokenExpired(idToken)) {
+    log.info("About to call isTokenExpired()");
+    const tokenExpired = isTokenExpired(idToken);
+    log.info("isTokenExpired() returned", { expired: tokenExpired });
+
+    if (tokenExpired) {
       log.error("Token is expired");
       setMessages((prev) => [
         ...prev,
