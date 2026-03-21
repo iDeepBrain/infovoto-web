@@ -56,7 +56,7 @@ export default function FeaturesGrid() {
   };
 
   return (
-    <section id="features" className="py-24 bg-white">
+    <section id="features" className="py-24 bg-gradient-to-b from-slate-900 to-slate-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -65,7 +65,7 @@ export default function FeaturesGrid() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4"
+            className="text-4xl sm:text-5xl font-bold text-white mb-4"
           >
             Todo lo que necesitas para votar informado
           </motion.h2>
@@ -74,7 +74,7 @@ export default function FeaturesGrid() {
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
+            className="text-xl text-blue-200 max-w-2xl mx-auto"
           >
             Accede a información electoral verificada, completa y actualizada en tiempo real.
           </motion.p>
@@ -93,7 +93,7 @@ export default function FeaturesGrid() {
               key={index}
               variants={cardVariants}
               whileHover={{ y: -8 }}
-              className="group p-8 rounded-2xl border border-gray-200 hover:border-blue-400 bg-white hover:shadow-xl transition-all"
+              className="group p-8 rounded-2xl border border-slate-700 hover:border-blue-300 bg-slate-800/50 hover:bg-slate-800 hover:shadow-xl transition-all"
             >
               {/* Icon */}
               <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform">
@@ -101,13 +101,13 @@ export default function FeaturesGrid() {
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+              <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
 
               {/* Description */}
-              <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+              <p className="text-gray-300 leading-relaxed">{feature.description}</p>
 
               {/* Bottom accent */}
-              <div className="mt-6 h-1 w-0 bg-gradient-to-r from-red-600 to-blue-600 group-hover:w-full transition-all duration-300" />
+              <div className="mt-6 h-1 w-0 bg-gradient-to-r from-blue-400 to-indigo-400 group-hover:w-full transition-all duration-300" />
             </motion.div>
           ))}
         </motion.div>
