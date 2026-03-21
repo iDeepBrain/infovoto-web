@@ -36,14 +36,16 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="border-t py-4 px-8 text-center text-xs text-gray-400 space-y-1">
+      <footer className="border-t py-6 px-8 text-center text-xs text-gray-400 space-y-2">
+        <p className="font-semibold text-gray-500">AVISO LEGAL</p>
         <p>
-          InfoVoto es una herramienta educativa e informativa independiente. La IA puede cometer errores — verifica siempre la información en{" "}
+          InfoVoto es una herramienta educativa e informativa. La información proviene de fuentes públicas oficiales ({" "}
           <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">JNE</a>,{" "}
-          <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">ONPE</a> y{" "}
-          <a href="https://www.reniec.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">RENIEC</a>.
+          <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">ONPE</a>).
+          InfoVoto NO es un servicio oficial del gobierno peruano.
         </p>
-        <p>No hace recomendaciones de voto. Las consultas se almacenan de forma anónima para mejorar el sistema.</p>
+        <p>InfoVoto NO recomienda ni apoya a ningún candidato o partido político. Verifica siempre en las fuentes oficiales.</p>
+        <p>Las consultas se almacenan de forma anónima para mejorar el sistema.</p>
       </footer>
     </main>
   );
