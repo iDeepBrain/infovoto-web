@@ -25,7 +25,7 @@ export default function StatsPage() {
       redirect("/login");
     }
 
-    if (status === "authenticated" && session?.user?.id_token) {
+    if (status === "authenticated" && (session as any)?.id_token) {
       fetchStats();
     }
   }, [status, session]);
@@ -36,7 +36,7 @@ export default function StatsPage() {
       const response = await fetch(`${gatewayUrl}/analytics/stats`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${(session as any)?.user?.id_token}`,
+          Authorization: `Bearer ${(session as any)?.id_token}`,
         },
       });
 

@@ -9,13 +9,24 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { sendMessage, type ChatResponse, type SourceMetadata, type Warning } from "@/lib/api";
+import {
+  sendMessage,
+  type ChatResponse,
+  type SourceMetadata,
+  type Warning,
+  AuthError,
+  RateLimitError,
+  TimeoutError,
+  isTokenExpired,
+} from "@/lib/api";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   sources?: SourceMetadata[];
   warnings?: Warning[];
+  isError?: boolean;
+  errorType?: "auth" | "rate_limit" | "timeout" | "server" | "network";
 }
 
 const PREGUNTAS_SUGERIDAS = [
@@ -167,7 +178,36 @@ export default function ChatPage() {
     if (!text || loading) return;
 
     const idToken = (session as any)?.id_token;
-    if (!idToken) return;
+    if (!idToken) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Tu sesión expiró. Por favor inicia sesión de nuevo.",
+          isError: true,
+          errorType: "auth",
+        },
+      ]);
+      await signOut({ redirect: false });
+      router.push("/login");
+      return;
+    }
+
+    // Check for expired token before sending
+    if (isTokenExpired(idToken)) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Tu sesión expiró. Por favor inicia sesión de nuevo.",
+          isError: true,
+          errorType: "auth",
+        },
+      ]);
+      await signOut({ redirect: false });
+      router.push("/login");
+      return;
+    }
 
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: text }]);
@@ -185,11 +225,35 @@ export default function ChatPage() {
         },
       ]);
     } catch (e) {
+      let errorMessage = "Lo siento, hubo un error. Por favor intenta de nuevo.";
+      let errorType: Message["errorType"] = "server";
+
+      if (e instanceof AuthError) {
+        errorMessage = "Tu sesión expiró. Por favor inicia sesión de nuevo.";
+        errorType = "auth";
+        // Auto-redirect to login
+        setTimeout(() => {
+          signOut({ redirect: false });
+          router.push("/login");
+        }, 2000);
+      } else if (e instanceof RateLimitError) {
+        errorMessage = "Alcanzaste el límite de consultas. Por favor intenta más tarde.";
+        errorType = "rate_limit";
+      } else if (e instanceof TimeoutError) {
+        errorMessage = "La solicitud tomó demasiado tiempo. Intenta nuevamente.";
+        errorType = "timeout";
+      } else if (e instanceof Error && e.message.includes("fetch")) {
+        errorMessage = "No se puede conectar con el servidor. Verifica tu conexión.";
+        errorType = "network";
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "Lo siento, hubo un error. Por favor intenta de nuevo.",
+          content: errorMessage,
+          isError: true,
+          errorType,
         },
       ]);
     } finally {
@@ -270,6 +334,16 @@ export default function ChatPage() {
               className={`max-w-[80%] rounded-lg p-3 ${
                 msg.role === "user"
                   ? "bg-red-600 text-white"
+                  : msg.isError && msg.errorType === "auth"
+                  ? "bg-red-50 text-red-900 border border-red-200"
+                  : msg.isError && msg.errorType === "rate_limit"
+                  ? "bg-amber-50 text-amber-900 border border-amber-200"
+                  : msg.isError && msg.errorType === "timeout"
+                  ? "bg-orange-50 text-orange-900 border border-orange-200"
+                  : msg.isError && msg.errorType === "network"
+                  ? "bg-blue-50 text-blue-900 border border-blue-200"
+                  : msg.isError
+                  ? "bg-gray-50 text-gray-900 border border-gray-200"
                   : "bg-gray-100 text-gray-900"
               }`}
             >
