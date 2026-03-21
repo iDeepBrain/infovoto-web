@@ -464,8 +464,15 @@ export default function ChatPage() {
                 <div className="text-sm leading-relaxed">
                   {renderMarkdown(
                     msg.content
-                      // Remove repeated disclaimer text
-                      .replace(/InfoVoto es una herramienta educativa\.\s*Verifica siempre en.*?ONPE.*?\n?/gs, "")
+                      // Remove repeated disclaimer lines
+                      .split("\n")
+                      .filter(
+                        (line) =>
+                          !line.includes("InfoVoto es una herramienta educativa") &&
+                          !line.includes("Verifica siempre en") &&
+                          line.trim() !== ""
+                      )
+                      .join("\n")
                   )}
                 </div>
               ) : (
