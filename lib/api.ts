@@ -65,10 +65,23 @@ export interface ChatResponse {
 export function isTokenExpired(token: string): boolean {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return true; // Invalid JWT format
+    log.debug("Token parts check", { partsLength: parts.length });
+
+    if (parts.length !== 3) {
+      log.warn("Invalid JWT format - wrong number of parts", { partsLength: parts.length });
+      return true;
+    }
+
     const payload = JSON.parse(atob(parts[1]));
-    return payload.exp < Date.now() / 1000; // exp is in seconds
-  } catch {
+    const isExpired = payload.exp < Date.now() / 1000;
+    log.debug("Token expiry check", {
+      exp: payload.exp,
+      now: Math.floor(Date.now() / 1000),
+      isExpired
+    });
+    return isExpired; // exp is in seconds
+  } catch (err) {
+    log.error("Error decoding token", { error: String(err) });
     return true; // If we can't decode, assume expired
   }
 }
