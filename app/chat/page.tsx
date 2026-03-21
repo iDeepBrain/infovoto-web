@@ -459,9 +459,15 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {/* Message content with markdown */}
+              {/* Message content with markdown - filter out repeated disclaimers */}
               {msg.role === "assistant" ? (
-                <div className="text-sm leading-relaxed">{renderMarkdown(msg.content)}</div>
+                <div className="text-sm leading-relaxed">
+                  {renderMarkdown(
+                    msg.content
+                      // Remove repeated disclaimer text
+                      .replace(/InfoVoto es una herramienta educativa\.\s*Verifica siempre en.*?ONPE.*?\n?/gs, "")
+                  )}
+                </div>
               ) : (
                 <p className="whitespace-pre-wrap">{msg.content}</p>
               )}
