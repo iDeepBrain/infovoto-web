@@ -2,8 +2,13 @@
  * Typed client for InfoVoto Gateway /api/chat.
  */
 
+import { createLogger } from "./logger";
+
+const log = createLogger("GatewayAPI");
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
 const REQUEST_TIMEOUT_MS = 15000; // 15 seconds client-side timeout
+
+log.info("Initialized with GATEWAY_URL", { url: GATEWAY_URL, timeoutMs: REQUEST_TIMEOUT_MS });
 
 // Custom error types for proper error handling in UI
 export class AuthError extends Error {
@@ -72,8 +77,11 @@ export async function sendMessage(
   message: string,
   idToken: string
 ): Promise<ChatResponse> {
+  log.info("sendMessage called", { messageLen: message.length });
+
   // Check if token is expired before sending
   if (isTokenExpired(idToken)) {
+    log.warn("Token is expired");
     throw new AuthError("Session expired — please log in again");
   }
 
@@ -81,7 +89,10 @@ export async function sendMessage(
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const res = await fetch(`${GATEWAY_URL}/api/chat`, {
+    const url = `${GATEWAY_URL}/api/chat`;
+    log.info("Calling gateway /api/chat", { url, messageLen: message.length });
+
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -91,8 +102,12 @@ export async function sendMessage(
       signal: controller.signal,
     });
 
+    log.info("Gateway response received", { status: res.status, ok: res.ok });
+
     if (!res.ok) {
       const error = await res.text();
+      log.error("Gateway returned error", { status: res.status, error });
+
       if (res.status === 401) {
         throw new AuthError(`Session expired: ${error}`);
       } else if (res.status === 429) {
@@ -102,14 +117,19 @@ export async function sendMessage(
       }
     }
 
-    return res.json();
+    const data = await res.json();
+    log.info("Gateway response parsed successfully", { hasReply: !!data.reply });
+    return data;
   } catch (err) {
     if (err instanceof AuthError || err instanceof RateLimitError || err instanceof GatewayError) {
+      log.error("Known error type caught", { errorName: err.name });
       throw err;
     }
     if (err instanceof DOMException && err.name === "AbortError") {
+      log.warn("Request timeout (15s)");
       throw new TimeoutError("Request took too long (15s timeout)");
     }
+    log.error("Unknown error in sendMessage", { error: String(err) });
     throw new GatewayError(0, String(err));
   } finally {
     clearTimeout(timeoutId);

@@ -9,6 +9,8 @@ RUN npm ci
 # Build
 FROM base AS builder
 WORKDIR /app
+ARG NEXT_PUBLIC_GATEWAY_URL=http://localhost:2080
+ENV NEXT_PUBLIC_GATEWAY_URL=$NEXT_PUBLIC_GATEWAY_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

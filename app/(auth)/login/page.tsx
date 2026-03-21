@@ -4,9 +4,21 @@
 
 "use client";
 
+import { createLogger } from "@/lib/logger";
 import { signIn } from "next-auth/react";
 
+const log = createLogger("LoginPage");
+
 export default function LoginPage() {
+  const handleGoogleSignIn = async () => {
+    log.info("Google sign-in button clicked");
+    try {
+      await signIn("google", { callbackUrl: "/chat" });
+    } catch (error) {
+      log.error("Google sign-in error", { error: String(error) });
+    }
+  };
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white p-8 rounded-xl shadow-md max-w-sm w-full text-center space-y-6">
@@ -15,7 +27,7 @@ export default function LoginPage() {
           Accede con tu cuenta de Google para consultar información electoral.
         </p>
         <button
-          onClick={() => signIn("google", { callbackUrl: "/chat" })}
+          onClick={handleGoogleSignIn}
           className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">

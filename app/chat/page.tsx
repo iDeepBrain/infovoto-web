@@ -9,6 +9,7 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createLogger } from "@/lib/logger";
 import {
   sendMessage,
   type ChatResponse,
@@ -19,6 +20,8 @@ import {
   TimeoutError,
   isTokenExpired,
 } from "@/lib/api";
+
+const log = createLogger("ChatPage");
 
 interface Message {
   role: "user" | "assistant";
@@ -161,13 +164,53 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [disclaimerDismissed, setDisclaimerDismissed] = useState(false);
   const [sugeridas] = useState(() => getRandomSugeridas(6));
+  const [showDebugLogs, setShowDebugLogs] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Intercept console methods to show debug logs
   useEffect(() => {
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalInfo = console.info;
+    const originalWarn = console.warn;
+
+    const addLog = (message: string) => {
+      setDebugLogs((prev) => [...prev.slice(-50), message]); // Keep last 50 logs
+    };
+
+    console.log = (...args) => {
+      originalLog(...args);
+      addLog(`[LOG] ${args.join(" ")}`);
+    };
+    console.error = (...args) => {
+      originalError(...args);
+      addLog(`[ERROR] ${args.join(" ")}`);
+    };
+    console.info = (...args) => {
+      originalInfo(...args);
+      addLog(`[INFO] ${args.join(" ")}`);
+    };
+    console.warn = (...args) => {
+      originalWarn(...args);
+      addLog(`[WARN] ${args.join(" ")}`);
+    };
+
+    return () => {
+      console.log = originalLog;
+      console.error = originalError;
+      console.info = originalInfo;
+      console.warn = originalWarn;
+    };
+  }, []);
+
+  useEffect(() => {
+    log.info("ChatPage mounted", { status, sessionUser: (session as any)?.user?.email });
     if (status === "unauthenticated") {
+      log.warn("User not authenticated, redirecting to /login");
       router.push("/login");
     }
-  }, [status, router]);
+  }, [status, router, session]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -175,10 +218,15 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || loading) return;
+    log.info("handleSend called", { text, loading });
+    if (!text || loading) {
+      log.warn("handleSend: text is empty or loading");
+      return;
+    }
 
     const idToken = (session as any)?.id_token;
     if (!idToken) {
+      log.error("No id_token in session", { session });
       setMessages((prev) => [
         ...prev,
         {
@@ -192,9 +240,12 @@ export default function ChatPage() {
       router.push("/login");
       return;
     }
+
+    log.info("Token found", { tokenLen: idToken.length });
 
     // Check for expired token before sending
     if (isTokenExpired(idToken)) {
+      log.error("Token is expired");
       setMessages((prev) => [
         ...prev,
         {
@@ -209,12 +260,15 @@ export default function ChatPage() {
       return;
     }
 
+    log.info("Token is valid, sending message");
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setLoading(true);
 
     try {
+      log.info("Calling sendMessage...", { text });
       const data: ChatResponse = await sendMessage(text, idToken);
+      log.info("sendMessage successful", { hasReply: !!data.reply });
       setMessages((prev) => [
         ...prev,
         {
@@ -225,10 +279,13 @@ export default function ChatPage() {
         },
       ]);
     } catch (e) {
+      log.error("sendMessage failed", { error: String(e), errorName: (e as any)?.name });
+
       let errorMessage = "Lo siento, hubo un error. Por favor intenta de nuevo.";
       let errorType: Message["errorType"] = "server";
 
       if (e instanceof AuthError) {
+        log.warn("AuthError caught");
         errorMessage = "Tu sesión expiró. Por favor inicia sesión de nuevo.";
         errorType = "auth";
         // Auto-redirect to login
@@ -237,12 +294,15 @@ export default function ChatPage() {
           router.push("/login");
         }, 2000);
       } else if (e instanceof RateLimitError) {
+        log.warn("RateLimitError caught");
         errorMessage = "Alcanzaste el límite de consultas. Por favor intenta más tarde.";
         errorType = "rate_limit";
       } else if (e instanceof TimeoutError) {
+        log.warn("TimeoutError caught");
         errorMessage = "La solicitud tomó demasiado tiempo. Intenta nuevamente.";
         errorType = "timeout";
       } else if (e instanceof Error && e.message.includes("fetch")) {
+        log.warn("Network error caught");
         errorMessage = "No se puede conectar con el servidor. Verifica tu conexión.";
         errorType = "network";
       }
@@ -267,6 +327,40 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen max-w-2xl mx-auto">
+      {/* Debug Logs Panel (floating) */}
+      {showDebugLogs && (
+        <div className="fixed bottom-20 right-4 w-96 h-64 bg-black text-white rounded-lg border border-gray-700 flex flex-col z-50">
+          <div className="flex items-center justify-between p-2 border-b border-gray-700">
+            <span className="text-sm font-bold">🐛 Debug Logs</span>
+            <button
+              onClick={() => setShowDebugLogs(false)}
+              className="text-sm hover:bg-gray-700 px-2 py-1 rounded"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto text-xs font-mono p-2 space-y-1">
+            {debugLogs.length === 0 ? (
+              <div className="text-gray-500">No logs yet...</div>
+            ) : (
+              debugLogs.map((log, i) => (
+                <div key={i} className="text-gray-300 break-words">
+                  {log}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Debug Logs Button (floating) */}
+      <button
+        onClick={() => setShowDebugLogs(!showDebugLogs)}
+        className="fixed bottom-4 right-4 px-3 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 z-50 font-mono"
+      >
+        🐛 {debugLogs.length}
+      </button>
+
       {/* Header */}
       <header className="border-b p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
