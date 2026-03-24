@@ -1,0 +1,67 @@
+{ "frames": {
+   "sprite-1774345654651709000 0.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 467, "h": 613 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 467, "h": 613 },
+    "sourceSize": { "w": 467, "h": 613 },
+    "duration": 170
+   },
+   "sprite-1774345654651709000 1.aseprite": {
+    "frame": { "x": 467, "y": 0, "w": 467, "h": 613 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 467, "h": 613 },
+    "sourceSize": { "w": 467, "h": 613 },
+    "duration": 170
+   },
+   "sprite-1774345654651709000 2.aseprite": {
+    "frame": { "x": 934, "y": 0, "w": 467, "h": 613 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 467, "h": 613 },
+    "sourceSize": { "w": 467, "h": 613 },
+    "duration": 170
+   },
+   "sprite-1774345654651709000 3.aseprite": {
+    "frame": { "x": 1401, "y": 0, "w": 467, "h": 613 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 467, "h": 613 },
+    "sourceSize": { "w": 467, "h": 613 },
+    "duration": 170
+   },
+   "sprite-1774345654651709000 4.aseprite": {
+    "frame": { "x": 1868, "y": 0, "w": 467, "h": 613 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 467, "h": 613 },
+    "sourceSize": { "w": 467, "h": 613 },
+    "duration": 170
+   },
+   "sprite-1774345654651709000 5.aseprite": {
+    "frame": { "x": 2335, "y": 0, "w": 467, "h": 613 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 467, "h": 613 },
+    "sourceSize": { "w": 467, "h": 613 },
+    "duration": 170
+   }
+ },
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.17-arm64",
+  "image": "voti_open_eyes_neutral.png",
+  "format": "RGBA8888",
+  "size": { "w": 2802, "h": 613 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "neutral", "from": 0, "to": 5, "direction": "pingpong", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

@@ -1,11 +1,14 @@
 /**
- * Landing page pública — infovoto.pe
- * Rediseñada con componentes modernos y animaciones
+ * Landing page publica — infovoto.pe
+ * Chat-first + Trust-first con Voti (pixel art cyber llama)
  */
 
 import Navbar from "./components/Navbar";
 import HeroSection from "./components/HeroSection";
-import FeaturesGrid from "./components/FeaturesGrid";
+import DemoSection from "./components/DemoSection";
+import FeaturesSection from "./components/FeaturesSection";
+import HowItWorksSection from "./components/HowItWorksSection";
+import TrustSection from "./components/TrustSection";
 import Footer from "./components/Footer";
 
 export default function Home() {
@@ -13,7 +16,10 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950">
       <Navbar />
       <HeroSection />
-      <FeaturesGrid />
+      <DemoSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <TrustSection />
       <Footer />
     </main>
   );
