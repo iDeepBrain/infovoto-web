@@ -1,3 +1,4 @@
+pixel-plugin/
 .env.local
 .env*.local
 .next
