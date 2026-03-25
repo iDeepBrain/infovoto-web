@@ -1,0 +1,38 @@
+sequenceDiagram
+    participant U as Usuario
+    participant B as Browser
+    participant N as NextAuth
+    participant G as Google OAuth
+    participant GW as Gateway
+    participant DB as PostgreSQL
+
+    U->>B: Clic "Iniciar con Google"
+    B->>N: signIn("google")
+    N->>G: Redirect a consent screen
+    G-->>U: Pantalla de permisos
+    U->>G: Autoriza
+    G-->>N: id_token + access_token + refresh_token
+
+    Note over N: JWT Callback
+    N->>GW: POST /auth/verify {id_token}
+    GW->>G: Valida token con Google
+    G-->>GW: OK (sub, email)
+    GW->>DB: Registrar usuario
+    GW-->>N: {user_id: "google_sub_123"}
+
+    Note over N: Session Callback
+    N->>N: session.user_id = user_id
+    N->>N: session.emailHash = SHA256(email)
+    N->>N: session.isAdmin = (email === admin)
+    N-->>B: Set-Cookie: next-auth.session-token
+
+    B-->>U: Redirect a /chat
+
+    Note over U,B: Enviar mensaje
+    U->>B: Escribe pregunta
+    B->>B: POST /api/chat {message}
+    Note over B: Server-side proxy
+    B->>B: getServerSession() → id_token
+    B->>GW: POST /api/chat {message}<br/>Authorization: Bearer id_token<br/>X-API-Key: gk_web_...
+    GW-->>B: {reply, sources, warnings}
+    B-->>U: Muestra respuesta con Voti avatar

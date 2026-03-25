@@ -1,0 +1,51 @@
+sequenceDiagram
+    participant U as Usuario
+    participant UI as Chat UI
+    participant API as /api/chat (Proxy)
+    participant GW as Gateway
+    participant AI as Gemini + MCPs
+
+    Note over UI: Estado: empty state<br/>Sprite: idle_half_blink
+
+    U->>UI: Escribe pregunta
+    UI->>UI: Valida: length ≤ 1000, auth ok
+    UI->>UI: Agrega msg user (amber bubble)
+    UI->>UI: setLoading(true)
+
+    Note over UI: Sprite header: thinking_squint<br/>Loading: "Buscando información..."
+
+    UI->>API: POST /api/chat {message}
+
+    Note over API: Security checks
+    API->>API: 1. Session check ✓
+    API->>API: 2. Rate limit ✓
+    API->>API: 3. Input validation ✓
+    API->>API: 4. Prompt injection check ✓
+
+    API->>GW: POST /api/chat<br/>+ Bearer token<br/>+ X-API-Key
+    GW->>AI: Process with Gemini + MCP tools
+    AI-->>GW: Response + sources
+
+    GW-->>API: {reply, sources, warnings}
+    API-->>UI: JSON response
+
+    UI->>UI: Agrega msg assistant (dark card)
+    UI->>UI: setLoading(false)
+
+    Note over UI: Sprite: explaining_talking<br/>Sources badge: 📊 JNE
+
+    alt Error de red
+        UI->>UI: Sprite: loading_worried
+        UI->>UI: "No se puede conectar"
+    end
+
+    alt Rate limit
+        API-->>UI: 429
+        UI->>UI: "Alcanzaste el límite"
+    end
+
+    alt Prompt injection
+        API-->>UI: 200 (blocked)
+        UI->>UI: "Solo info electoral"
+        Note over GW: Gateway NUNCA se enteró<br/>0 tokens gastados
+    end

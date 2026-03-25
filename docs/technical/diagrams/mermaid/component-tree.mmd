@@ -1,0 +1,36 @@
+graph TD
+    ROOT[RootLayout<br/>layout.tsx] --> SP[SessionProvider]
+    ROOT --> GA[Analytics GA4]
+
+    SP --> LANDING["Landing - page.tsx"]
+    SP --> LOGIN["Login - /login"]
+    SP --> CHAT["Chat - /chat"]
+    SP --> STATS["Stats - /stats Admin"]
+
+    LANDING --> NAV[Navbar]
+    LANDING --> HERO[HeroSection<br/>VotiSprite idle → happy]
+    LANDING --> DEMO[DemoSection<br/>4 preguntas → /chat?q=]
+    LANDING --> FEAT[FeaturesSection<br/>3 cards + mini VotiSprite]
+    LANDING --> GRID[FeaturesGrid<br/>6 cards]
+    LANDING --> HOW[HowItWorksSection<br/>3 pasos]
+    LANDING --> STATSEC[StatsSection<br/>Contadores animados]
+    LANDING --> TRUST[TrustSection<br/>VotiSprite neutral → celebrating]
+    LANDING --> FOOT[Footer]
+
+    CHAT --> HEADER[Header<br/>VotiAvatar 48px reactive]
+    CHAT --> CONSENT[Banner consentimiento<br/>localStorage]
+    CHAT --> EMPTY[Empty state<br/>VotiSprite 144px + sugeridas]
+    CHAT --> MSGS[Messages<br/>VotiAvatar 44px per msg]
+    CHAT --> LOAD[Loading<br/>VotiAvatar thinking]
+    CHAT --> INPUT[Input bar<br/>1000 chars + counter]
+
+    MSGS --> UMSG[User bubble<br/>amber, right]
+    MSGS --> AMSG[Assistant bubble<br/>dark card + sources]
+
+    STATS --> CARDS[6 Stat Cards]
+    STATS --> LINE[Line Chart<br/>Recharts 30 días]
+    STATS --> BAR[Bar Chart<br/>Distribución diaria]
+
+    style CHAT fill:#f59e0b,color:#000
+    style LANDING fill:#3b82f6,color:#fff
+    style STATS fill:#8b5cf6,color:#fff

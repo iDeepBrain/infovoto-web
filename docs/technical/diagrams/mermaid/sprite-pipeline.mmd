@@ -1,0 +1,20 @@
+flowchart LR
+    GEN[Gemini genera frames] --> V2[v2/ frames crudos]
+    V2 --> REMBG[rembg U2Net<br/>remove_bg.py]
+    REMBG --> NOBG[v2_nobg/ sin fondo]
+    NOBG --> CROP[OpenCV Otsu + morph<br/>crop_to_bbox.py]
+    CROP --> CUT[v2_nobg_cut/ recortados]
+    CUT --> ASE[pixel-mcp + Aseprite<br/>rebuild_all.lua]
+    ASE --> PNG[public/sprites/*.png<br/>Spritesheets horizontales]
+    ASE --> JSON[public/sprites/*.json<br/>Metadata frames]
+    ASE --> ASEFILE[assets/aseprite/*.aseprite<br/>Fuentes editables]
+
+    JSON --> COMP[VotiSprite.tsx]
+    PNG --> COMP
+    COMP --> RENDER[Browser: CSS background-image<br/>+ translateX por frame]
+
+    style GEN fill:#8b5cf6,color:#fff
+    style REMBG fill:#3b82f6,color:#fff
+    style CROP fill:#22c55e,color:#fff
+    style ASE fill:#f59e0b,color:#000
+    style COMP fill:#ef4444,color:#fff
