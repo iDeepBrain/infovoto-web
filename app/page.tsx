@@ -13,7 +13,18 @@ import Footer from "./components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-950">
+    <main className="min-h-screen bg-[#0a0f1a] relative">
+      {/* Pixel art background */}
+      <div
+        className="fixed inset-0 opacity-[0.15] pointer-events-none z-0"
+        style={{
+          backgroundImage: "url('/bg-pixel-mountains.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          imageRendering: "pixelated",
+        }}
+      />
+      <div className="relative z-10">
       <Navbar />
       <HeroSection />
       <DemoSection />
@@ -21,6 +32,7 @@ export default function Home() {
       <HowItWorksSection />
       <TrustSection />
       <Footer />
+      </div>
     </main>
   );
 }

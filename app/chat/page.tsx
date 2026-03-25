@@ -1,13 +1,13 @@
 /**
  * Chat page — protected, requires Google login.
- * Connects to gateway /api/chat.
+ * Dark theme with Voti avatar and pixel art background.
  */
 
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
-import Link from "next/link";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import VotiSprite from "@/app/components/VotiSprite";
 import { useEffect, useRef, useState } from "react";
 import { createLogger } from "@/lib/logger";
 import {
@@ -36,14 +36,10 @@ const PREGUNTAS_SUGERIDAS = [
   "¿Quiénes postulan a la presidencia en 2026?",
   "¿Qué propone Renovación Popular sobre seguridad?",
   "¿Cuándo son las elecciones 2026?",
-  "¿Qué es el sistema bicameral? ¿Qué cambia?",
   "¿Dónde me toca votar?",
   "¿Cuánto es la multa por no votar?",
-  "¿Qué proponen sobre pensiones?",
-  "¿Quién financia a Fuerza Popular?",
   "Compara las propuestas de economía de Keiko y López Aliaga",
   "¿Qué candidatos tienen sentencias judiciales?",
-  "¿Cuántas cédulas de votación voy a recibir?",
   "¿Qué es el voto preferencial? ¿Cómo funciona?",
 ];
 
@@ -52,8 +48,13 @@ function getRandomSugeridas(count: number): string[] {
   return shuffled.slice(0, count);
 }
 
-/** Simple markdown-like rendering: bold, italic, lists, links, horizontal rules */
+/** Sanitize HTML tags to prevent XSS from gateway responses */
+function sanitize(text: string): string {
+  return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function renderMarkdown(text: string) {
+  text = sanitize(text);
   const lines = text.split("\n");
   const elements: React.ReactNode[] = [];
   let listItems: string[] = [];
@@ -73,87 +74,65 @@ function renderMarkdown(text: string) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-
-    // Horizontal rule
     if (/^---+$/.test(line.trim())) {
       flushList();
-      elements.push(<hr key={`hr-${i}`} className="my-2 border-gray-300" />);
+      elements.push(<hr key={`hr-${i}`} className="my-2 border-gray-600" />);
       continue;
     }
-
-    // List item
     if (/^[-*•]\s/.test(line.trim())) {
       listItems.push(line.trim().replace(/^[-*•]\s/, ""));
       continue;
     }
-
-    // Numbered list
     if (/^\d+\.\s/.test(line.trim())) {
       listItems.push(line.trim().replace(/^\d+\.\s/, ""));
       continue;
     }
-
     flushList();
-
-    // Empty line
-    if (line.trim() === "") {
-      continue;
-    }
-
-    // Regular paragraph
+    if (line.trim() === "") continue;
     elements.push(
       <p key={`p-${i}`} className="my-1">
         {formatInline(line)}
       </p>
     );
   }
-
   flushList();
   return elements;
 }
 
-/** Format inline markdown: **bold**, *italic*, [links](url) */
 function formatInline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
-  // Match **bold**, *italic*, [text](url)
   const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|\[(.+?)\]\((.+?)\))/g;
   let lastIndex = 0;
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
-
-    if (match[2]) {
-      // **bold**
-      parts.push(<strong key={match.index}>{match[2]}</strong>);
-    } else if (match[3]) {
-      // *italic*
-      parts.push(<em key={match.index}>{match[3]}</em>);
-    } else if (match[4] && match[5]) {
-      // [text](url)
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
+    if (match[2]) parts.push(<strong key={match.index}>{match[2]}</strong>);
+    else if (match[3]) parts.push(<em key={match.index}>{match[3]}</em>);
+    else if (match[4] && match[5])
       parts.push(
-        <a
-          key={match.index}
-          href={match[5]}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline text-blue-600 hover:text-blue-800"
-        >
+        <a key={match.index} href={match[5]} target="_blank" rel="noopener noreferrer" className="underline text-amber-400 hover:text-amber-300">
           {match[4]}
         </a>
       );
-    }
-
     lastIndex = match.index + match[0].length;
   }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
-
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
   return parts.length === 1 ? parts[0] : <>{parts}</>;
+}
+
+/** Voti avatar next to assistant messages */
+function VotiAvatar({ size = 40, sprite = "voti_idle_half_blink" }: { size?: number; sprite?: string }) {
+  // Sprite is portrait (470×625, ratio 0.752). Scale by height to fit in circle.
+  const spriteWidth = Math.round(size * 0.75);
+  return (
+    <div
+      className="shrink-0 rounded-full overflow-hidden border border-[#334155] bg-[#1e293b] flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <VotiSprite sprite={sprite} width={spriteWidth} />
+    </div>
+  );
 }
 
 export default function ChatPage() {
@@ -162,309 +141,223 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [disclaimerDismissed, setDisclaimerDismissed] = useState(false);
-  const [sugeridas] = useState(() => getRandomSugeridas(6));
-  const [showDebugLogs, setShowDebugLogs] = useState(false);
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [sugeridas] = useState(() => getRandomSugeridas(4));
+  const [consentDismissed, setConsentDismissed] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Intercept console methods to show debug logs
+  // Load consent state from localStorage
   useEffect(() => {
-    const originalLog = console.log;
-    const originalError = console.error;
-    const originalInfo = console.info;
-    const originalWarn = console.warn;
-
-    const addLog = (message: string) => {
-      setDebugLogs((prev) => [...prev.slice(-50), message]); // Keep last 50 logs
-    };
-
-    console.log = (...args) => {
-      originalLog(...args);
-      addLog(`[LOG] ${args.join(" ")}`);
-    };
-    console.error = (...args) => {
-      originalError(...args);
-      addLog(`[ERROR] ${args.join(" ")}`);
-    };
-    console.info = (...args) => {
-      originalInfo(...args);
-      addLog(`[INFO] ${args.join(" ")}`);
-    };
-    console.warn = (...args) => {
-      originalWarn(...args);
-      addLog(`[WARN] ${args.join(" ")}`);
-    };
-
-    return () => {
-      console.log = originalLog;
-      console.error = originalError;
-      console.info = originalInfo;
-      console.warn = originalWarn;
-    };
+    if (typeof window !== "undefined") {
+      setConsentDismissed(localStorage.getItem("voti_consent") === "1");
+    }
   }, []);
 
-  useEffect(() => {
-    log.info("ChatPage mounted", { status, sessionUser: (session as any)?.user?.email });
-    if (status === "unauthenticated") {
-      log.warn("User not authenticated, redirecting to /login");
-      router.push("/login");
-    }
-  }, [status, router, session]);
+  const isAuthenticated = status === "authenticated" && !!(session as any)?.id_token;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Handle ?q= param for pre-filled questions from landing
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (q && messages.length === 0) {
+      setInput(q);
+      // Auto-focus the input
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [messages.length]);
+
+  const MAX_MESSAGE_LENGTH = 1000;
+
   const handleSend = async () => {
     const text = input.trim();
-    log.info("handleSend called", { text, loading });
-    if (!text || loading) {
-      log.warn("handleSend: text is empty or loading");
-      return;
-    }
+    if (!text || loading || !isAuthenticated) return;
+    if (text.length > MAX_MESSAGE_LENGTH) return;
 
     const idToken = (session as any)?.id_token;
-    if (!idToken) {
-      log.error("No id_token in session", { session });
+    if (!idToken || isTokenExpired(idToken)) {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: "Tu sesión expiró. Por favor inicia sesión de nuevo.",
-          isError: true,
-          errorType: "auth",
-        },
+        { role: "assistant", content: "Tu sesión expiró. Por favor inicia sesión de nuevo.", isError: true, errorType: "auth" },
       ]);
-      await signOut({ redirect: false });
-      router.push("/login");
       return;
     }
 
-    log.info("Token found", { tokenLen: idToken.length, firstChars: idToken.slice(0, 20) });
-
-    // Check for expired token before sending
-    log.info("About to call isTokenExpired()");
-    const tokenExpired = isTokenExpired(idToken);
-    log.info("isTokenExpired() returned", { expired: tokenExpired });
-
-    if (tokenExpired) {
-      log.error("Token is expired");
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "Tu sesión expiró. Por favor inicia sesión de nuevo.",
-          isError: true,
-          errorType: "auth",
-        },
-      ]);
-      await signOut({ redirect: false });
-      router.push("/login");
-      return;
-    }
-
-    log.info("Token is valid, sending message");
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setLoading(true);
 
     try {
-      log.info("Calling sendMessage...", { text });
       const data: ChatResponse = await sendMessage(text, idToken);
-      log.info("sendMessage successful", { hasReply: !!data.reply });
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: data.reply,
-          sources: data.sources,
-          warnings: data.warnings,
-        },
+        { role: "assistant", content: data.reply, sources: data.sources, warnings: data.warnings },
       ]);
     } catch (e) {
-      log.error("sendMessage failed", { error: String(e), errorName: (e as any)?.name });
-
       let errorMessage = "Lo siento, hubo un error. Por favor intenta de nuevo.";
       let errorType: Message["errorType"] = "server";
 
       if (e instanceof AuthError) {
-        log.warn("AuthError caught");
         errorMessage = "Tu sesión expiró. Por favor inicia sesión de nuevo.";
         errorType = "auth";
-        // Auto-redirect to login
-        setTimeout(() => {
-          signOut({ redirect: false });
-          router.push("/login");
-        }, 2000);
+        setTimeout(() => { signOut({ redirect: false }); router.push("/login"); }, 2000);
       } else if (e instanceof RateLimitError) {
-        log.warn("RateLimitError caught");
         errorMessage = "Alcanzaste el límite de consultas. Por favor intenta más tarde.";
         errorType = "rate_limit";
       } else if (e instanceof TimeoutError) {
-        log.warn("TimeoutError caught");
         errorMessage = "La solicitud tomó demasiado tiempo. Intenta nuevamente.";
         errorType = "timeout";
       } else if (e instanceof Error && e.message.includes("fetch")) {
-        log.warn("Network error caught");
         errorMessage = "No se puede conectar con el servidor. Verifica tu conexión.";
         errorType = "network";
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: errorMessage,
-          isError: true,
-          errorType,
-        },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: errorMessage, isError: true, errorType }]);
     } finally {
       setLoading(false);
     }
   };
 
   if (status === "loading") {
-    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0a0f1a]">
+        <div className="text-gray-400">Cargando...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-2xl mx-auto">
-      {/* Debug Logs Panel (floating) */}
-      {showDebugLogs && (
-        <div className="fixed bottom-20 right-4 w-96 h-64 bg-black text-white rounded-lg border border-gray-700 flex flex-col z-50">
-          <div className="flex items-center justify-between p-2 border-b border-gray-700">
-            <span className="text-sm font-bold">🐛 Debug Logs</span>
-            <button
-              onClick={() => setShowDebugLogs(false)}
-              className="text-sm hover:bg-gray-700 px-2 py-1 rounded"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto text-xs font-mono p-2 space-y-1">
-            {debugLogs.length === 0 ? (
-              <div className="text-gray-500">No logs yet...</div>
-            ) : (
-              debugLogs.map((log, i) => (
-                <div key={i} className="text-gray-300 break-words">
-                  {log}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Debug Logs Button (floating) */}
-      <button
-        onClick={() => setShowDebugLogs(!showDebugLogs)}
-        className="fixed bottom-4 right-4 px-3 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 z-50 font-mono"
-      >
-        🐛 {debugLogs.length}
-      </button>
+    <div className="flex flex-col h-screen bg-[#0a0f1a] relative">
+      {/* Pixel art background */}
+      <div
+        className="fixed inset-0 opacity-[0.08] pointer-events-none"
+        style={{
+          backgroundImage: "url('/bg-pixel-mountains.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          imageRendering: "pixelated",
+        }}
+      />
 
       {/* Header */}
-      <header className="border-b p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-lg">InfoVoto</span>
-          <span className="text-sm text-gray-500">Perú 2026</span>
+      <header className="relative z-10 flex items-center gap-3 px-4 md:px-8 py-3 bg-[#111827] border-b border-[#1e293b]">
+        <VotiAvatar size={48} sprite={loading ? "voti_thinking_squint" : "voti_idle_half_blink"} />
+        <div className="flex-1">
+          <h1 className="font-bold text-white text-base">VOTI</h1>
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+            <span className="text-xs text-gray-400">En línea — Datos del JNE y ONPE</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/stats"
-            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition"
-          >
-            📊 Estadísticas
-          </Link>
+        {isAuthenticated ? (
           <button
             onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
-            className="px-3 py-1 text-sm bg-red-50 hover:bg-red-100 text-red-600 rounded transition"
+            className="px-3 py-1.5 text-xs bg-[#1e293b] hover:bg-[#334155] text-gray-300 rounded-lg border border-[#334155] transition"
           >
             Salir
           </button>
-        </div>
+        ) : (
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/chat" })}
+            className="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-[#0a0f1a] font-bold rounded-lg transition"
+          >
+            Iniciar sesión
+          </button>
+        )}
       </header>
 
-      {/* Disclaimer banner */}
-      {!disclaimerDismissed && (
-        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3 flex items-start justify-between text-sm text-yellow-800">
-          <p>
-            <strong>InfoVoto es una herramienta educativa.</strong> La IA puede cometer errores — verifica siempre en{" "}
-            <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">JNE</a>{" "}
-            y{" "}
-            <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">ONPE</a>.
-            Tus consultas se almacenan de forma anónima para mejorar el sistema.
-          </p>
-          <button onClick={() => setDisclaimerDismissed(true)} className="ml-4 shrink-0 font-bold">✕</button>
+      {/* Consent banner */}
+      {!consentDismissed && (
+        <div className="relative z-10 flex items-center justify-between px-4 md:px-8 lg:px-32 py-2 bg-[#1e293b] border-b border-[#334155] text-xs text-gray-400">
+          <span>Tus consultas se almacenan de forma anónima para mejorar el servicio.</span>
+          <button
+            onClick={() => { setConsentDismissed(true); localStorage.setItem("voti_consent", "1"); }}
+            className="ml-3 text-gray-500 hover:text-white shrink-0"
+          >
+            ✕
+          </button>
         </div>
       )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages area */}
+      <div className="relative z-10 flex-1 overflow-y-auto px-4 md:px-8 lg:px-32 py-6 space-y-4">
+        {/* Empty state */}
         {messages.length === 0 && (
-          <div className="mt-8 space-y-4">
-            <div className="text-center text-gray-400">
-              <p>¿En qué puedo ayudarte?</p>
-              <p className="text-sm mt-2">
-                Pregunta sobre candidatos, planes de gobierno, o locales de votación.
-              </p>
+          <div className="mt-8 space-y-6">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-36 h-36 rounded-full overflow-hidden border-2 border-[#1e293b] bg-[#111827] flex items-center justify-center">
+                <VotiSprite sprite="voti_idle_half_blink" width={108} />
+              </div>
+              <div className="text-center">
+                <p className="text-white font-bold text-lg">¡Hola! Soy VOTI</p>
+                <p className="text-gray-400 text-sm mt-1">Te ayudo a votar informado. Pregúntame sobre candidatos, propuestas o procesos electorales.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto">
               {sugeridas.map((pregunta, i) => (
                 <button
                   key={i}
-                  onClick={() => {
-                    setInput(pregunta);
-                  }}
-                  className="text-left text-sm px-3 py-2 rounded-lg border border-gray-200 hover:border-red-400 hover:bg-red-50 text-gray-600 hover:text-gray-900 transition"
+                  onClick={() => { setInput(pregunta); inputRef.current?.focus(); }}
+                  className="text-left text-sm px-4 py-3 rounded-xl bg-[#1e293b] border border-[#334155] text-gray-300 hover:border-amber-500/50 hover:text-white transition"
                 >
-                  {pregunta}
+                  👉 {pregunta}
                 </button>
               ))}
             </div>
           </div>
         )}
+
+        {/* Chat messages */}
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+          <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            {/* Voti avatar for assistant — reactive sprite */}
+            {msg.role === "assistant" && (
+              <VotiAvatar
+                size={44}
+                sprite={msg.isError ? "voti_loading_worried" : "voti_explaining_talking"}
+              />
+            )}
+
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
+              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                 msg.role === "user"
-                  ? "bg-red-600 text-white"
-                  : msg.isError && msg.errorType === "auth"
-                  ? "bg-red-50 text-red-900 border border-red-200"
-                  : msg.isError && msg.errorType === "rate_limit"
-                  ? "bg-amber-50 text-amber-900 border border-amber-200"
-                  : msg.isError && msg.errorType === "timeout"
-                  ? "bg-orange-50 text-orange-900 border border-orange-200"
-                  : msg.isError && msg.errorType === "network"
-                  ? "bg-blue-50 text-blue-900 border border-blue-200"
+                  ? "bg-amber-500 text-[#0a0f1a] font-medium"
                   : msg.isError
-                  ? "bg-gray-50 text-gray-900 border border-gray-200"
-                  : "bg-gray-100 text-gray-900"
+                  ? "bg-red-900/30 text-red-200 border border-red-800/50"
+                  : "bg-[#111827] text-gray-200 border border-[#1e293b]"
               }`}
             >
-              {/* Warnings badge */}
+              {/* VOTI label for assistant messages */}
+              {msg.role === "assistant" && !msg.isError && (
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm font-bold text-white">VOTI</span>
+                  {loading && i === messages.length - 1 ? (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1e293b] text-blue-400">thinking</span>
+                  ) : (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1e293b] text-amber-400">explaining</span>
+                  )}
+                </div>
+              )}
+
+              {/* Warnings */}
               {msg.warnings && msg.warnings.length > 0 && (
                 <div className="mb-2 space-y-1">
                   {msg.warnings.map((w, j) => (
-                    <div
-                      key={j}
-                      className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded"
-                    >
+                    <div key={j} className="text-xs bg-amber-900/30 text-amber-300 px-2 py-1 rounded">
                       {w.message}
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Message content with markdown - filter out repeated disclaimers */}
+              {/* Content */}
               {msg.role === "assistant" ? (
                 <div className="text-sm leading-relaxed">
                   {renderMarkdown(
                     msg.content
-                      // Remove repeated disclaimer lines
                       .split("\n")
                       .filter(
                         (line) =>
@@ -476,78 +369,86 @@ export default function ChatPage() {
                   )}
                 </div>
               ) : (
-                <p className="whitespace-pre-wrap">{msg.content}</p>
+                <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
               )}
 
               {/* Sources */}
               {msg.sources && msg.sources.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-200 text-xs opacity-70">
-                  <p className="font-semibold mb-1">Fuentes:</p>
-                  <ul className="space-y-0.5">
-                    {msg.sources.map((s, j) => (
-                      <li key={j}>
-                        {s.url ? (
-                          <a
-                            href={s.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline hover:text-blue-600"
-                          >
-                            {s.name}
-                          </a>
-                        ) : (
-                          s.name
-                        )}
-                        {s.data_type === "declaracion_jurada" && (
-                          <span className="ml-1 text-amber-600">(Declaración Jurada)</span>
-                        )}
-                        {s.data_type === "plan_gobierno" && (
-                          <span className="ml-1 text-blue-600">(Plan de Gobierno)</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                <div className="mt-2 pt-2 border-t border-[#334155] text-xs">
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#1e293b] border border-[#334155] text-gray-400">
+                    <span>📊</span>
+                    <span>Fuente: {msg.sources.map((s) => s.name).join(", ")}</span>
+                  </div>
                 </div>
               )}
             </div>
           </div>
         ))}
+
+        {/* Loading indicator */}
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg p-3 text-gray-500 text-sm">
-              Consultando fuentes...
+          <div className="flex gap-3 justify-start">
+            <VotiAvatar size={44} sprite="voti_thinking_squint" />
+            <div className="bg-[#111827] border border-[#1e293b] rounded-2xl px-4 py-3 flex items-center gap-2">
+              <span className="text-sm font-bold text-white">VOTI</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1e293b] text-blue-400">thinking</span>
+              <span className="text-sm text-gray-400">Buscando información...</span>
             </div>
           </div>
         )}
         <div ref={bottomRef} />
       </div>
 
-      {/* Footer disclaimer */}
-      <div className="text-center text-xs text-gray-400 py-1 border-t border-gray-100">
+      {/* Disclaimer */}
+      <div className="relative z-10 text-center text-[10px] text-gray-500 py-1 border-t border-[#1e293b]">
         Verifica siempre en{" "}
-        <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">JNE</a>
+        <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">JNE</a>
         {" "}y{" "}
-        <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="underline">ONPE</a>
+        <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">ONPE</a>
       </div>
 
-      {/* Input */}
-      <div className="border-t p-4 flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Escribe tu pregunta sobre las elecciones..."
-          className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-          disabled={loading}
-        />
-        <button
-          onClick={handleSend}
-          disabled={loading || !input.trim()}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
-        >
-          Enviar
-        </button>
+      {/* Input bar */}
+      <div className="relative z-10 flex gap-3 px-4 md:px-8 lg:px-32 py-4 bg-[#111827] border-t border-[#1e293b]">
+        {isAuthenticated ? (
+          <>
+            <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_LENGTH))}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                placeholder="Escribe tu pregunta..."
+                className={`w-full bg-[#0a0f1a] border rounded-full px-5 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition ${
+                  input.length >= MAX_MESSAGE_LENGTH ? "border-red-500" : "border-[#1e293b] focus:border-amber-500/50"
+                }`}
+                disabled={loading}
+                maxLength={MAX_MESSAGE_LENGTH}
+              />
+              {input.length > MAX_MESSAGE_LENGTH * 0.8 && (
+                <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] ${
+                  input.length >= MAX_MESSAGE_LENGTH ? "text-red-400" : "text-gray-500"
+                }`}>
+                  {input.length}/{MAX_MESSAGE_LENGTH}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleSend}
+              disabled={loading || !input.trim() || input.length > MAX_MESSAGE_LENGTH}
+              className="w-12 h-12 bg-amber-500 text-[#0a0f1a] rounded-full flex items-center justify-center hover:bg-amber-400 disabled:opacity-40 transition text-lg font-bold shrink-0"
+            >
+              →
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/chat" })}
+            className="flex-1 bg-amber-500 text-[#0a0f1a] font-bold py-3 rounded-full hover:bg-amber-400 transition text-sm"
+          >
+            Inicia sesión con Google para preguntar
+          </button>
+        )}
       </div>
     </div>
   );

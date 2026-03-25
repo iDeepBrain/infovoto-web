@@ -5,9 +5,16 @@
  * to get the canonical user_id (Google sub claim).
  */
 
+import { createHash } from "crypto";
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { createLogger } from "./logger";
+
+function hashEmail(email: string): string {
+  return createHash("sha256").update(email.toLowerCase().trim()).digest("hex");
+}
+
+export const ADMIN_EMAIL = "cristian2023ml@gmail.com";
 
 const log = createLogger("NextAuth");
 
@@ -112,10 +119,12 @@ export const authOptions: NextAuthOptions = {
         hasError: !!token.error,
       });
 
-      // Expose user_id and id_token to client
+      // Expose user_id, id_token, and hashed email to client
       (session as any).user_id = token.user_id;
       (session as any).id_token = token.id_token;
       (session as any).error = token.error;
+      (session as any).emailHash = token.email ? hashEmail(token.email as string) : undefined;
+      (session as any).isAdmin = token.email === ADMIN_EMAIL;
 
       return session;
     },

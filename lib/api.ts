@@ -5,10 +5,10 @@
 import { createLogger } from "./logger";
 
 const log = createLogger("GatewayAPI");
+// Chat goes through Next.js API route (server-side proxy — API key never reaches browser)
+// Other endpoints (stats) still go direct for now
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
 const REQUEST_TIMEOUT_MS = 15000; // 15 seconds client-side timeout
-
-log.info("Initialized with GATEWAY_URL", { url: GATEWAY_URL, timeoutMs: REQUEST_TIMEOUT_MS });
 
 // Custom error types for proper error handling in UI
 export class AuthError extends Error {
@@ -102,15 +102,13 @@ export async function sendMessage(
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const url = `${GATEWAY_URL}/api/chat`;
-    log.info("Calling gateway /api/chat", { url, messageLen: message.length });
+    // Browser → Next.js proxy /api/chat → Gateway (API key added server-side)
+    const url = "/api/chat";
+    log.info("Calling proxy /api/chat", { messageLen: message.length });
 
     const res = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
       signal: controller.signal,
     });
@@ -165,6 +163,8 @@ export async function* sendMessageStream(
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
+    // Stream also goes through proxy (TODO: create /api/chat/stream route)
+    // For now, still direct — stream proxy is complex
     const res = await fetch(`${GATEWAY_URL}/api/chat/stream`, {
       method: "POST",
       headers: {

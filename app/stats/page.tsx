@@ -1,8 +1,14 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, BarChart, Bar,
+} from "recharts";
+
+const ADMIN_EMAIL = "cristian2023ml@gmail.com";
 
 interface UserStats {
   user_id: string;
@@ -14,40 +20,48 @@ interface UserStats {
   requests_last_7_days: number;
 }
 
+interface DailyStats {
+  date: string;
+  count: number;
+}
+
 export default function StatsPage() {
   const { data: session, status } = useSession();
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [dailyData, setDailyData] = useState<DailyStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      redirect("/login");
-    }
+  const isAdmin = (session as any)?.user?.email === ADMIN_EMAIL;
 
+  useEffect(() => {
     if (status === "authenticated" && (session as any)?.id_token) {
-      fetchStats();
+      fetchAllData();
+    }
+    if (status === "unauthenticated") {
+      setLoading(false);
     }
   }, [status, session]);
 
-  async function fetchStats() {
+  async function fetchAllData() {
+    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
+    const headers = { Authorization: `Bearer ${(session as any)?.id_token}` };
+
     try {
-      const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
-      const response = await fetch(`${gatewayUrl}/analytics/stats`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${(session as any)?.id_token}`,
-        },
-      });
+      const [statsRes, dailyRes] = await Promise.allSettled([
+        fetch(`${gatewayUrl}/analytics/stats`, { headers }),
+        fetch(`${gatewayUrl}/analytics/daily-stats?days=30`, { headers }),
+      ]);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch stats");
+      if (statsRes.status === "fulfilled" && statsRes.value.ok) {
+        setStats(await statsRes.value.json());
       }
-
-      const data = await response.json();
-      setStats(data);
+      if (dailyRes.status === "fulfilled" && dailyRes.value.ok) {
+        const raw = await dailyRes.value.json();
+        setDailyData(Array.isArray(raw) ? raw : raw.data || []);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : "Error cargando datos");
     } finally {
       setLoading(false);
     }
@@ -55,120 +69,147 @@ export default function StatsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white">Cargando estadísticas...</div>
+      <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
+        <div className="text-gray-400">Cargando estadísticas...</div>
       </div>
     );
   }
 
-  if (error) {
+  if (status === "unauthenticated") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-red-400">Error: {error}</div>
+      <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-400 mb-4">Inicia sesión para ver estadísticas</p>
+          <Link href="/login" className="px-6 py-2 bg-amber-500 text-[#0a0f1a] rounded-lg font-bold">
+            Iniciar sesión
+          </Link>
+        </div>
       </div>
     );
   }
 
-  if (!stats) {
+  if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-white">No hay datos de estadísticas</div>
+      <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-400 mb-4">Acceso restringido a administradores</p>
+          <Link href="/chat" className="px-6 py-2 bg-[#1e293b] text-white rounded-lg border border-[#334155]">
+            ← Volver al Chat
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const lastActive = stats.last_active ? new Date(stats.last_active).toLocaleString("es-PE") : "Nunca";
+  const lastActive = stats?.last_active ? new Date(stats.last_active).toLocaleString("es-PE") : "—";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#0a0f1a] relative">
+      {/* Pixel art bg */}
+      <div
+        className="fixed inset-0 opacity-[0.08] pointer-events-none"
+        style={{ backgroundImage: "url('/bg-pixel-mountains.jpg')", backgroundSize: "cover", imageRendering: "pixelated" }}
+      />
+
+      <div className="relative z-10 p-6 md:p-8 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Tus Estadísticas</h1>
-          <p className="text-slate-400">Métricas de uso de InfoVoto</p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Dashboard Admin</h1>
+            <p className="text-gray-400 text-sm mt-1">Métricas de InfoVoto</p>
+          </div>
+          <Link href="/chat" className="px-4 py-2 bg-[#1e293b] text-gray-300 rounded-lg border border-[#334155] text-sm hover:bg-[#334155] transition">
+            ← Chat
+          </Link>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Total Requests */}
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <div className="text-slate-400 text-sm font-medium mb-2">Total de Consultas</div>
-            <div className="text-3xl font-bold text-white">{stats.total_requests}</div>
-            <div className="text-xs text-slate-500 mt-2">Todas las preguntas realizadas</div>
+        {error && (
+          <div className="mb-6 p-3 bg-red-900/30 border border-red-800/50 rounded-lg text-red-300 text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <StatCard label="Total consultas" value={stats?.total_requests ?? 0} color="text-white" />
+          <StatCard label="Hoy" value={stats?.requests_today ?? 0} color="text-amber-400" />
+          <StatCard label="Últimos 7 días" value={stats?.requests_last_7_days ?? 0} color="text-green-400" />
+          <StatCard label="Ingresos" value={stats?.total_logins ?? 0} color="text-blue-400" />
+          <StatCard label="Promedio (ms)" value={Math.round(stats?.avg_request_duration_ms ?? 0)} color="text-purple-400" />
+          <StatCard label="Última actividad" value={lastActive} color="text-gray-300" small />
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Line Chart: Requests per day */}
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
+            <h3 className="text-white font-bold text-sm mb-4">Consultas por día (30 días)</h3>
+            {dailyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={dailyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
+                  <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 8 }}
+                    labelStyle={{ color: "#f8fafc" }}
+                    itemStyle={{ color: "#f59e0b" }}
+                  />
+                  <Line type="monotone" dataKey="count" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b", r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[250px] flex items-center justify-center text-gray-500 text-sm">
+                Sin datos. Conecta el gateway para ver gráficas.
+              </div>
+            )}
           </div>
 
-          {/* Requests Today */}
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <div className="text-slate-400 text-sm font-medium mb-2">Hoy</div>
-            <div className="text-3xl font-bold text-blue-400">{stats.requests_today}</div>
-            <div className="text-xs text-slate-500 mt-2">Consultas realizadas hoy</div>
-          </div>
-
-          {/* Last 7 Days */}
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <div className="text-slate-400 text-sm font-medium mb-2">Últimos 7 Días</div>
-            <div className="text-3xl font-bold text-green-400">{stats.requests_last_7_days}</div>
-            <div className="text-xs text-slate-500 mt-2">Consultas de la última semana</div>
-          </div>
-
-          {/* Logins */}
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <div className="text-slate-400 text-sm font-medium mb-2">Ingresos</div>
-            <div className="text-3xl font-bold text-purple-400">{stats.total_logins}</div>
-            <div className="text-xs text-slate-500 mt-2">Veces que ingresaste</div>
-          </div>
-
-          {/* Avg Duration */}
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <div className="text-slate-400 text-sm font-medium mb-2">Tiempo Promedio</div>
-            <div className="text-3xl font-bold text-orange-400">
-              {Math.round(stats.avg_request_duration_ms)}ms
-            </div>
-            <div className="text-xs text-slate-500 mt-2">Duración promedio por consulta</div>
-          </div>
-
-          {/* Last Active */}
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <div className="text-slate-400 text-sm font-medium mb-2">Última Actividad</div>
-            <div className="text-sm font-mono text-cyan-400">{lastActive}</div>
-            <div className="text-xs text-slate-500 mt-2">Cuándo usaste el app por última vez</div>
+          {/* Bar Chart: same data as bar */}
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
+            <h3 className="text-white font-bold text-sm mb-4">Distribución diaria</h3>
+            {dailyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={dailyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
+                  <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 8 }}
+                    labelStyle={{ color: "#f8fafc" }}
+                    itemStyle={{ color: "#3b82f6" }}
+                  />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[250px] flex items-center justify-center text-gray-500 text-sm">
+                Sin datos aún.
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Summary */}
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-          <h2 className="text-xl font-bold text-white mb-4">Resumen</h2>
-          <div className="space-y-2 text-slate-300">
-            <p>
-              Has realizado <span className="font-bold text-white">{stats.total_requests}</span> consultas en total.
-            </p>
-            <p>
-              Hoy has hecho <span className="font-bold text-white">{stats.requests_today}</span> preguntas.
-            </p>
-            <p>
-              En los últimos 7 días realizaste{" "}
-              <span className="font-bold text-white">{stats.requests_last_7_days}</span> consultas.
-            </p>
-            <p>
-              Ingresaste <span className="font-bold text-white">{stats.total_logins}</span> veces.
-            </p>
-            <p>
-              El tiempo promedio por consulta es de{" "}
-              <span className="font-bold text-white">{Math.round(stats.avg_request_duration_ms)}ms</span>.
-            </p>
-          </div>
-        </div>
-
-        {/* Back Button */}
-        <div className="mt-8">
-          <a
-            href="/chat"
-            className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-          >
-            ← Volver al Chat
-          </a>
+        {/* Info */}
+        <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
+          <h3 className="text-white font-bold text-sm mb-3">Notas</h3>
+          <ul className="text-gray-400 text-sm space-y-1">
+            <li>• Los datos provienen del endpoint <code className="text-amber-400">/analytics/stats</code> del gateway</li>
+            <li>• Emails hasheados con SHA-256 (no se almacenan en claro)</li>
+            <li>• Dashboard visible solo para: <code className="text-amber-400">{ADMIN_EMAIL}</code></li>
+            <li>• Para stats globales (todos los usuarios), se requiere endpoint admin en el gateway</li>
+          </ul>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, color, small }: { label: string; value: string | number; color: string; small?: boolean }) {
+  return (
+    <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-4">
+      <div className="text-gray-400 text-xs mb-1">{label}</div>
+      <div className={`${small ? "text-xs font-mono" : "text-2xl font-bold"} ${color}`}>{value}</div>
     </div>
   );
 }

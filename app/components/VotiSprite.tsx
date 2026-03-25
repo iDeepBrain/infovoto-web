@@ -92,7 +92,7 @@ export default function VotiSprite({
     setFrame(0);
   }, [isHovered]);
 
-  if (!activeData) return <div style={{ width, height: width * 0.558 }} />;
+  if (!activeData) return <div style={{ width, height: width * 1.33 }} />;
 
   const frameW = activeData.frames[0].frame.w;
   const frameH = activeData.frames[0].frame.h;
