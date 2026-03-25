@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar,
+  ResponsiveContainer,
 } from "recharts";
 
 const ADMIN_EMAIL = "cristian2023ml@gmail.com";
@@ -125,7 +125,28 @@ export default function StatsPage() {
     );
   }
 
-  const lastActive = stats?.last_active ? new Date(stats.last_active).toLocaleString("es-PE") : "—";
+  // Derived metrics
+  const avgPerUser =
+    stats?.total_unique_users && stats?.total_platform_requests
+      ? (stats.total_platform_requests / stats.total_unique_users).toFixed(1)
+      : "—";
+
+  const latencyLabel = stats?.avg_request_duration_ms
+    ? (stats.avg_request_duration_ms / 1000).toFixed(1) + "s"
+    : "—";
+
+  const geminiCost = calcGeminiCost(
+    stats?.total_tokens_input ?? 0,
+    stats?.total_tokens_output ?? 0,
+  );
+
+  const costPerQuery =
+    stats?.total_requests && stats.total_requests > 0 && geminiCost > 0
+      ? "$" + (geminiCost / stats.total_requests).toFixed(6)
+      : "—";
+
+  const hasQueryData = dailyData.length > 0 && dailyData.some((d) => d.count > 0);
+  const hasUserData = dailyData.length > 0 && dailyData.some((d) => d.unique_users != null);
 
   return (
     <div className="min-h-screen bg-[#0a0f1a] relative">
@@ -153,22 +174,12 @@ export default function StatsPage() {
           </div>
         )}
 
-        {/* Platform-wide KPIs */}
-        {(stats?.total_unique_users != null || stats?.total_platform_requests != null) && (
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <StatCard label="Usuarios únicos" value={stats?.total_unique_users ?? 0} color="text-emerald-400" />
-            <StatCard label="Consultas totales (plataforma)" value={stats?.total_platform_requests ?? 0} color="text-sky-400" />
-          </div>
-        )}
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <StatCard label="Mis consultas" value={stats?.total_requests ?? 0} color="text-white" />
-          <StatCard label="Hoy" value={stats?.requests_today ?? 0} color="text-amber-400" />
-          <StatCard label="Últimos 7 días" value={stats?.requests_last_7_days ?? 0} color="text-green-400" />
-          <StatCard label="Ingresos" value={stats?.total_logins ?? 0} color="text-blue-400" />
-          <StatCard label="Promedio (ms)" value={Math.round(stats?.avg_request_duration_ms ?? 0)} color="text-purple-400" />
-          <StatCard label="Última actividad" value={lastActive} color="text-gray-300" small />
+        {/* Adopción KPIs — 4 cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <StatCard label="Usuarios únicos" value={stats?.total_unique_users ?? 0} color="text-emerald-400" />
+          <StatCard label="Consultas totales" value={stats?.total_platform_requests ?? 0} color="text-sky-400" />
+          <StatCard label="Consultas/usuario" value={avgPerUser} color="text-purple-400" />
+          <StatCard label="Latencia promedio" value={latencyLabel} color="text-amber-400" />
         </div>
 
         {/* Charts Row */}
@@ -177,7 +188,7 @@ export default function StatsPage() {
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
             <h3 className="text-white font-bold text-sm mb-1">Consultas por día</h3>
             <p className="text-gray-500 text-xs mb-4">Últimos 30 días</p>
-            {dailyData.length > 0 ? (
+            {hasQueryData ? (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -192,8 +203,9 @@ export default function StatsPage() {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[250px] flex items-center justify-center text-gray-500 text-sm">
-                Sin datos. Conecta el gateway para ver gráficas.
+              <div className="h-[250px] flex items-center justify-center text-center text-gray-500 text-sm px-6">
+                El gateway necesita retornar <code className="text-amber-400 mx-1">count</code> en{" "}
+                <code className="text-amber-400">/analytics/daily-stats</code>
               </div>
             )}
           </div>
@@ -202,7 +214,7 @@ export default function StatsPage() {
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
             <h3 className="text-white font-bold text-sm mb-1">Usuarios únicos por día</h3>
             <p className="text-gray-500 text-xs mb-4">Últimos 30 días</p>
-            {dailyData.length > 0 && dailyData.some((d) => d.unique_users != null) ? (
+            {hasUserData ? (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -218,7 +230,8 @@ export default function StatsPage() {
               </ResponsiveContainer>
             ) : (
               <div className="h-[250px] flex items-center justify-center text-center text-gray-500 text-sm px-6">
-                El gateway necesita retornar <code className="text-amber-400 mx-1">unique_users</code> en <code className="text-amber-400">/analytics/daily-stats</code>
+                El gateway necesita retornar <code className="text-amber-400 mx-1">unique_users</code> en{" "}
+                <code className="text-amber-400">/analytics/daily-stats</code>
               </div>
             )}
           </div>
@@ -232,7 +245,7 @@ export default function StatsPage() {
             {stats?.total_tokens_input != null || stats?.total_tokens_output != null ? (
               <>
                 <div className="text-3xl font-bold text-emerald-400 mb-4">
-                  ${calcGeminiCost(stats?.total_tokens_input ?? 0, stats?.total_tokens_output ?? 0).toFixed(4)} USD
+                  ${geminiCost.toFixed(4)} USD
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-gray-400">
@@ -246,6 +259,10 @@ export default function StatsPage() {
                     <span className="text-orange-400">
                       ${((stats?.total_tokens_output ?? 0) * GEMINI_PRICE_OUTPUT / 1_000_000).toFixed(4)}
                     </span>
+                  </div>
+                  <div className="flex justify-between text-gray-400">
+                    <span>Costo por consulta</span>
+                    <span className="text-purple-400">{costPerQuery}</span>
                   </div>
                   <div className="pt-2 border-t border-[#1e293b] text-xs text-gray-500">
                     Gemini 2.0 Flash: $0.075/M input · $0.30/M output
@@ -279,27 +296,16 @@ export default function StatsPage() {
             </div>
           </div>
         </div>
-
-        {/* Info */}
-        <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
-          <h3 className="text-white font-bold text-sm mb-3">Notas</h3>
-          <ul className="text-gray-400 text-sm space-y-1">
-            <li>• Los datos provienen del endpoint <code className="text-amber-400">/analytics/stats</code> del gateway</li>
-            <li>• Emails hasheados con SHA-256 (no se almacenan en claro)</li>
-            <li>• Dashboard visible solo para: <code className="text-amber-400">{ADMIN_EMAIL}</code></li>
-            <li>• Para stats globales (todos los usuarios), se requiere endpoint admin en el gateway</li>
-          </ul>
-        </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ label, value, color, small }: { label: string; value: string | number; color: string; small?: boolean }) {
+function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
   return (
     <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-4">
       <div className="text-gray-400 text-xs mb-1">{label}</div>
-      <div className={`${small ? "text-xs font-mono" : "text-2xl font-bold"} ${color}`}>{value}</div>
+      <div className={`text-2xl font-bold ${color}`}>{value}</div>
     </div>
   );
 }
