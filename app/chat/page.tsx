@@ -36,7 +36,7 @@ const PREGUNTAS_SUGERIDAS = [
   "¿Quiénes postulan a la presidencia en 2026?",
   "¿Qué propone Renovación Popular sobre seguridad?",
   "¿Cuándo son las elecciones 2026?",
-  "¿Dónde me toca votar?",
+  "¿Quién es el candidato con más patrimonio?",
   "¿Cuánto es la multa por no votar?",
   "Compara las propuestas de economía de Keiko y López Aliaga",
   "¿Qué candidatos tienen sentencias judiciales?",
