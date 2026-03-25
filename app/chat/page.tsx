@@ -235,7 +235,7 @@ export default function ChatPage() {
       <div
         className="fixed inset-0 opacity-[0.08] pointer-events-none"
         style={{
-          backgroundImage: "url('/bg-pixel-mountains.jpg')",
+          backgroundImage: `url('${process.env.NEXT_PUBLIC_ASSETS_URL || ""}/bg-pixel-mountains.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           imageRendering: "pixelated",

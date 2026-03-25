@@ -128,7 +128,7 @@ export default function StatsPage() {
       {/* Pixel art bg */}
       <div
         className="fixed inset-0 opacity-[0.08] pointer-events-none"
-        style={{ backgroundImage: "url('/bg-pixel-mountains.jpg')", backgroundSize: "cover", imageRendering: "pixelated" }}
+        style={{ backgroundImage: `url('${process.env.NEXT_PUBLIC_ASSETS_URL || ""}/bg-pixel-mountains.jpg')`, backgroundSize: "cover", imageRendering: "pixelated" }}
       />
 
       <div className="relative z-10 p-6 md:p-8 max-w-6xl mx-auto">

@@ -3,6 +3,7 @@ const nextConfig = {
   output: "standalone",
   env: {
     NEXT_PUBLIC_GATEWAY_URL: process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080",
+    NEXT_PUBLIC_ASSETS_URL: process.env.NEXT_PUBLIC_ASSETS_URL || "",
   },
   async headers() {
     return [
@@ -26,9 +27,9 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://lh3.googleusercontent.com",
+              "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.supabase.co",
               "font-src 'self'",
-              `connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com ${process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080"}`,
+              `connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://*.supabase.co ${process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080"}`,
               "frame-src https://accounts.google.com",
               "base-uri 'self'",
               "form-action 'self' https://accounts.google.com",

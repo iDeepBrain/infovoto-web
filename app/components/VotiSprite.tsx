@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
+const ASSETS_URL = process.env.NEXT_PUBLIC_ASSETS_URL || "";
+
 interface SpriteFrame {
   frame: { x: number; y: number; w: number; h: number };
   duration: number;
@@ -49,7 +51,7 @@ export default function VotiSprite({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    fetch(`/sprites/${sprite}.json`)
+    fetch(`${ASSETS_URL}/sprites/${sprite}.json`)
       .then((r) => r.json())
       .then((raw) => setData(normalizeFrames(raw)))
       .catch(() => {});
@@ -118,7 +120,7 @@ export default function VotiSprite({
         style={{
           width: sheetW * scale,
           height,
-          backgroundImage: `url(/sprites/${activeSprite}.png)`,
+          backgroundImage: `url(${ASSETS_URL}/sprites/${activeSprite}.png)`,
           backgroundSize: `${sheetW * scale}px ${height}px`,
           backgroundRepeat: "no-repeat",
           transform: `translateX(${offsetX}px)`,
