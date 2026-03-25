@@ -10,7 +10,9 @@
     "test": "vitest run",
     "test:visual": "playwright test tests/visual.spec.ts",
     "test:visual:headed": "playwright test tests/visual.spec.ts --headed",
-    "test:visual:ui": "playwright test tests/visual.spec.ts --ui"
+    "test:visual:ui": "playwright test tests/visual.spec.ts --ui",
+    "test:e2e": "playwright test tests/auth.spec.ts tests/chat.spec.ts",
+    "test:e2e:headed": "playwright test tests/auth.spec.ts tests/chat.spec.ts --headed"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
