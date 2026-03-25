@@ -253,12 +253,22 @@ export default function ChatPage() {
           </div>
         </div>
         {isAuthenticated ? (
-          <button
-            onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
-            className="px-3 py-1.5 text-xs bg-[#1e293b] hover:bg-[#334155] text-gray-300 rounded-lg border border-[#334155] transition"
-          >
-            Salir
-          </button>
+          <div className="flex items-center gap-2">
+            {(session as any)?.user?.email === "cristian2023ml@gmail.com" && (
+              <a
+                href="/stats"
+                className="px-3 py-1.5 text-xs text-amber-400 hover:text-amber-300 transition"
+              >
+                Dashboard
+              </a>
+            )}
+            <button
+              onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
+              className="px-3 py-1.5 text-xs bg-[#1e293b] hover:bg-[#334155] text-gray-300 rounded-lg border border-[#334155] transition"
+            >
+              Salir
+            </button>
+          </div>
         ) : (
           <button
             onClick={() => signIn("google", { callbackUrl: "/chat" })}
@@ -361,7 +371,7 @@ export default function ChatPage() {
                       .split("\n")
                       .filter(
                         (line) =>
-                          !line.includes("InfoVoto es una herramienta educativa") &&
+                          !line.includes("Voti es una herramienta educativa") &&
                           !line.includes("Verifica siempre en") &&
                           line.trim() !== ""
                       )
@@ -375,9 +385,36 @@ export default function ChatPage() {
               {/* Sources */}
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-2 pt-2 border-t border-[#334155] text-xs">
-                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[#1e293b] border border-[#334155] text-gray-400">
-                    <span>📊</span>
-                    <span>Fuente: {msg.sources.map((s) => s.name).join(", ")}</span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-gray-500">Fuentes:</span>
+                    {msg.sources.map((s, i) => {
+                      const typeColors: Record<string, string> = {
+                        oficial: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+                        declaracion_jurada: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+                        plan_gobierno: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+                      };
+                      const colorClass = typeColors[s.data_type] || typeColors.oficial;
+                      return s.url ? (
+                        <a
+                          key={i}
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border ${colorClass} hover:opacity-80 transition`}
+                        >
+                          <span>📊</span>
+                          <span>{s.name}</span>
+                        </a>
+                      ) : (
+                        <span
+                          key={i}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border ${colorClass}`}
+                        >
+                          <span>📊</span>
+                          <span>{s.name}</span>
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -401,10 +438,12 @@ export default function ChatPage() {
 
       {/* Disclaimer */}
       <div className="relative z-10 text-center text-[10px] text-gray-500 py-1 border-t border-[#1e293b]">
-        Verifica siempre en{" "}
+        Verifica en{" "}
         <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">JNE</a>
-        {" "}y{" "}
+        {" | "}
         <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">ONPE</a>
+        {" | "}
+        <a href="https://votoinformado.jne.gob.pe/home" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Voto Informado</a>
       </div>
 
       {/* Input bar */}

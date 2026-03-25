@@ -6,18 +6,18 @@ import VotiSprite from "./VotiSprite";
 const trustItems = [
   {
     icon: "✅",
-    title: "Fuentes oficiales",
-    description: "Toda la informacion proviene del JNE y ONPE.",
+    title: "7,236 candidatos en base de datos",
+    description: "Hojas de vida, antecedentes y patrimonio del JNE y ONPE.",
   },
   {
     icon: "⚖️",
-    title: "Neutral",
-    description: "Sin recomendaciones, sin sesgos, sin publicidad politica.",
+    title: "Sin afiliacion politica",
+    description: "No recomendamos candidatos. No tenemos publicidad politica.",
   },
   {
     icon: "🔍",
-    title: "Transparente y verificable",
-    description: "Cada respuesta incluye la fuente para que puedas verificar.",
+    title: "Cada respuesta cita su fuente",
+    description: "Puedes verificar directamente en jne.gob.pe y onpe.gob.pe.",
   },
 ];
 

@@ -4,34 +4,34 @@ import { motion } from "framer-motion";
 
 const features = [
   {
-    icon: "👥",
+    icon: "👤",
     title: "Candidatos",
-    description: "Perfiles completos, experiencia, y propuestas de los candidatos presidenciales y congresuales.",
+    description: "Perfil completo: experiencia laboral, estudios y trayectoria politica de cada candidato.",
   },
   {
     icon: "📋",
     title: "Propuestas",
-    description: "Planes de gobierno detallados en educación, salud, economía, seguridad y más.",
+    description: "Planes de gobierno por tema: educacion, salud, seguridad, economia y mas.",
   },
   {
-    icon: "📍",
-    title: "Dónde Votar",
-    description: "Encuentra tu mesa electoral y locales de votación más cercanos.",
-  },
-  {
-    icon: "🔍",
-    title: "Búsqueda Avanzada",
-    description: "Filtra candidatos por región, partido, edad, o especialidad.",
+    icon: "⚖️",
+    title: "Antecedentes",
+    description: "Historial judicial y sentencias de cada candidato registrados en el JNE.",
   },
   {
     icon: "📊",
-    title: "Comparativas",
-    description: "Compara propuestas de gobierno lado a lado para tomar una decisión informada.",
+    title: "Comparar",
+    description: "Compara candidatos lado a lado en cualquier tema que te interese.",
   },
   {
-    icon: "✅",
-    title: "Verificado",
-    description: "Toda la información proviene de fuentes oficiales: JNE y ONPE.",
+    icon: "💰",
+    title: "Patrimonio",
+    description: "Ingresos, bienes y nivel educativo declarados oficialmente al JNE.",
+  },
+  {
+    icon: "🏛️",
+    title: "Proceso Electoral",
+    description: "Sistema bicameral, voto preferencial, segunda vuelta y como funciona todo.",
   },
 ];
 
@@ -67,16 +67,16 @@ export default function FeaturesGrid() {
             viewport={{ once: true }}
             className="text-4xl sm:text-5xl font-bold text-white mb-4"
           >
-            Todo lo que necesitas para votar informado
+            Preguntale sobre cualquier tema electoral
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
-            className="text-xl text-blue-200 max-w-2xl mx-auto"
+            className="text-xl text-gray-400 max-w-2xl mx-auto"
           >
-            Accede a información electoral verificada, completa y actualizada en tiempo real.
+            Informacion completa, neutral y verificada.
           </motion.p>
         </div>
 
@@ -93,7 +93,7 @@ export default function FeaturesGrid() {
               key={index}
               variants={cardVariants}
               whileHover={{ y: -8 }}
-              className="group p-8 rounded-2xl border border-slate-700 hover:border-blue-300 bg-slate-800/50 hover:bg-slate-800 hover:shadow-xl transition-all"
+              className="group p-8 rounded-2xl border border-slate-700 hover:border-amber-500/50 bg-slate-800/50 hover:bg-slate-800 hover:shadow-xl transition-all"
             >
               {/* Icon */}
               <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform">
@@ -107,7 +107,7 @@ export default function FeaturesGrid() {
               <p className="text-gray-300 leading-relaxed">{feature.description}</p>
 
               {/* Bottom accent */}
-              <div className="mt-6 h-1 w-0 bg-gradient-to-r from-blue-400 to-indigo-400 group-hover:w-full transition-all duration-300" />
+              <div className="mt-6 h-1 w-0 bg-gradient-to-r from-amber-400 to-orange-400 group-hover:w-full transition-all duration-300" />
             </motion.div>
           ))}
         </motion.div>

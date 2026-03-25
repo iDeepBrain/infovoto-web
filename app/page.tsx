@@ -6,8 +6,8 @@
 import Navbar from "./components/Navbar";
 import HeroSection from "./components/HeroSection";
 import DemoSection from "./components/DemoSection";
-import FeaturesSection from "./components/FeaturesSection";
-import HowItWorksSection from "./components/HowItWorksSection";
+import VotiStorySection from "./components/VotiStorySection";
+import FeaturesGrid from "./components/FeaturesGrid";
 import TrustSection from "./components/TrustSection";
 import Footer from "./components/Footer";
 
@@ -27,9 +27,9 @@ export default function Home() {
       <div className="relative z-10">
       <Navbar />
       <HeroSection />
+      <VotiStorySection />
       <DemoSection />
-      <FeaturesSection />
-      <HowItWorksSection />
+      <FeaturesGrid />
       <TrustSection />
       <Footer />
       </div>

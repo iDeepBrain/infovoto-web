@@ -18,7 +18,27 @@ interface UserStats {
   avg_request_duration_ms: number;
   requests_today: number;
   requests_last_7_days: number;
+  // Token data (optional — populated if gateway returns it)
+  total_tokens_input?: number;
+  total_tokens_output?: number;
 }
+
+// Gemini 2.0 Flash pricing (USD per 1M tokens)
+const GEMINI_PRICE_INPUT = 0.075;
+const GEMINI_PRICE_OUTPUT = 0.30;
+
+function calcGeminiCost(tokensIn: number, tokensOut: number): number {
+  return (tokensIn * GEMINI_PRICE_INPUT + tokensOut * GEMINI_PRICE_OUTPUT) / 1_000_000;
+}
+
+const FIXED_COSTS = [
+  { label: "voti.pe", amount: "$35/año", note: "Dominio" },
+  { label: "voti.com.pe", amount: "$35/año", note: "Dominio" },
+  { label: "infovoto.com", amount: "$15/año", note: "Dominio (comprado)" },
+  { label: "Claude Code Max", amount: "$100/mes", note: "Dev tooling" },
+  { label: "GCP", amount: "$300 créditos", note: "Free tier disponible" },
+  { label: "Supabase", amount: "Gratis", note: "Free tier" },
+];
 
 interface DailyStats {
   date: string;
@@ -116,7 +136,7 @@ export default function StatsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-white">Dashboard Admin</h1>
-            <p className="text-gray-400 text-sm mt-1">Métricas de InfoVoto</p>
+            <p className="text-gray-400 text-sm mt-1">Métricas de Voti</p>
           </div>
           <Link href="/chat" className="px-4 py-2 bg-[#1e293b] text-gray-300 rounded-lg border border-[#334155] text-sm hover:bg-[#334155] transition">
             ← Chat
@@ -187,6 +207,62 @@ export default function StatsPage() {
                 Sin datos aún.
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Cost Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Gemini API Cost */}
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
+            <h3 className="text-white font-bold text-sm mb-4">💸 Costo Gemini estimado</h3>
+            {stats?.total_tokens_input != null || stats?.total_tokens_output != null ? (
+              <>
+                <div className="text-3xl font-bold text-emerald-400 mb-4">
+                  ${calcGeminiCost(stats?.total_tokens_input ?? 0, stats?.total_tokens_output ?? 0).toFixed(4)} USD
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between text-gray-400">
+                    <span>Tokens input ({(stats?.total_tokens_input ?? 0).toLocaleString()})</span>
+                    <span className="text-blue-400">
+                      ${((stats?.total_tokens_input ?? 0) * GEMINI_PRICE_INPUT / 1_000_000).toFixed(4)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-gray-400">
+                    <span>Tokens output ({(stats?.total_tokens_output ?? 0).toLocaleString()})</span>
+                    <span className="text-orange-400">
+                      ${((stats?.total_tokens_output ?? 0) * GEMINI_PRICE_OUTPUT / 1_000_000).toFixed(4)}
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-[#1e293b] text-xs text-gray-500">
+                    Gemini 2.0 Flash: $0.075/M input · $0.30/M output
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-gray-500 text-sm">
+                <p>Sin datos de tokens aún.</p>
+                <p className="mt-2 text-xs">El gateway necesita retornar <code className="text-amber-400">total_tokens_input</code> y <code className="text-amber-400">total_tokens_output</code> en <code className="text-amber-400">/analytics/stats</code>.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Fixed Costs */}
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
+            <h3 className="text-white font-bold text-sm mb-4">📋 Costos fijos del proyecto</h3>
+            <div className="space-y-2">
+              {FIXED_COSTS.map((item) => (
+                <div key={item.label} className="flex items-center justify-between text-sm">
+                  <div>
+                    <span className="text-gray-300 font-medium">{item.label}</span>
+                    <span className="text-gray-500 text-xs ml-2">{item.note}</span>
+                  </div>
+                  <span className="text-amber-400 font-mono text-xs">{item.amount}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#1e293b] text-xs text-gray-500">
+              Inversión objetivo: ~$100 en las 2 semanas pre-elecciones (abril 2026)
+            </div>
           </div>
         </div>
 

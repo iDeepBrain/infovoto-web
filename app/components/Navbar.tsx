@@ -21,9 +21,9 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-bold text-xl text-white">
             <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-              IV
+              V
             </div>
-            <span className="hidden sm:inline">InfoVoto</span>
+            <span className="hidden sm:inline">Voti</span>
           </Link>
 
           {/* Desktop Menu */}
@@ -37,6 +37,12 @@ export default function Navbar() {
             <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition font-medium text-sm">
               JNE Oficial
             </a>
+            <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition font-medium text-sm">
+              ONPE
+            </a>
+            <a href="https://votoinformado.jne.gob.pe/home" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition font-medium text-sm">
+              Voto Informado
+            </a>
           </div>
 
           {/* Auth Button */}
@@ -46,6 +52,11 @@ export default function Navbar() {
                 <Link href="/chat" className="px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-lg font-semibold hover:shadow-lg transition">
                   Consultar
                 </Link>
+                {(session as any)?.user?.email === "cristian2023ml@gmail.com" && (
+                  <Link href="/stats" className="px-3 py-2 text-gray-400 hover:text-amber-400 transition text-sm">
+                    Dashboard
+                  </Link>
+                )}
                 <button
                   onClick={() => signOut()}
                   className="px-4 py-2 text-gray-300 hover:text-white transition"
@@ -83,6 +94,12 @@ export default function Navbar() {
             </Link>
             <a href="#features" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
               Características
+            </a>
+            <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
+              ONPE
+            </a>
+            <a href="https://votoinformado.jne.gob.pe/home" target="_blank" rel="noopener noreferrer" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
+              Voto Informado
             </a>
             {session ? (
               <>

@@ -5,7 +5,7 @@
 | Contexto | Nombre | Uso |
 |----------|--------|-----|
 | Conversación | **VOTI** | Cómo se presenta el chatbot al usuario |
-| Producto/Marca | **InfoVoto** | URLs, disclaimers, branding institucional |
+| Producto/Marca | **Voti** | URLs, disclaimers, branding institucional |
 | WhatsApp | VOTI 🦙🇵🇪 | Nombre del contacto |
 | Web | VOTI | Chat bubble, header del chat |
 
@@ -83,8 +83,8 @@ Puedes preguntarme sobre candidatos, propuestas o procesos electorales.
 | `src/agent/core.py:35` | "Genera una respuesta como VOTI" | Instrucción del synthesizer |
 | `src/agent/router.py:17` | "Router de herramientas para VOTI" | Router prompt |
 | `src/agent/preprocessor.py:94` | "¡Hola! Soy VOTI 🦙🇵🇪" | Greeting de bienvenida |
-| `src/agent/preprocessor.py:158` | "Soy VOTI, asistente de InfoVoto" | Respuesta a "¿Qué es VOTI?" |
-| `src/agent/output_filter.py:56` | "InfoVoto es una herramienta educativa" | Disclaimer (nombre de producto) |
+| `src/agent/preprocessor.py:158` | "Soy VOTI, asistente de Voti" | Respuesta a "¿Qué es VOTI?" |
+| `src/agent/output_filter.py:56` | "Voti es una herramienta educativa" | Disclaimer (nombre de producto) |
 
 ## Relación con Prompts
 

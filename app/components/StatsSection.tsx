@@ -48,7 +48,7 @@ export default function StatsSection() {
             Impacto Electoral 2026
           </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Miles de ciudadanos peruanos utilizan InfoVoto para tomar decisiones electorales informadas.
+            Miles de ciudadanos peruanos utilizan Voti para tomar decisiones electorales informadas.
           </p>
         </motion.div>
 

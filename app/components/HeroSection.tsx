@@ -27,10 +27,10 @@ export default function HeroSection() {
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
                 <VotiSprite
-                  sprite="voti_idle_half_blink"
-                  onHoverSprite="voti_happy_talking"
-                  width={480}
-                  className="cursor-pointer"
+                  sprite="voti_body_turnaround"
+                  width={420}
+                  loop={false}
+                  playing={false}
                 />
               </motion.div>
               {/* Shadow under Voti */}

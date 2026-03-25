@@ -1,5 +1,5 @@
 /**
- * Typed client for InfoVoto Gateway /api/chat.
+ * Typed client for Voti Gateway /api/chat.
  */
 
 import { createLogger } from "./logger";

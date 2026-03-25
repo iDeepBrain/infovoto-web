@@ -17,9 +17,9 @@ export default function Footer() {
           >
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                IV
+                V
               </div>
-              <span className="font-bold text-white">InfoVoto Perú 2026</span>
+              <span className="font-bold text-white">Voti Peru 2026</span>
             </div>
             <p className="text-sm text-gray-400">
               Información electoral verificada para ciudadanos informados.
@@ -92,6 +92,16 @@ export default function Footer() {
                   Portal Electoral
                 </a>
               </li>
+              <li>
+                <a
+                  href="https://votoinformado.jne.gob.pe/home"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition"
+                >
+                  Voto Informado JNE
+                </a>
+              </li>
             </ul>
           </motion.div>
 
@@ -133,7 +143,7 @@ export default function Footer() {
           >
             <h5 className="font-semibold text-blue-300 mb-3">⚠️ Aviso Legal</h5>
             <p className="text-xs text-gray-400 leading-relaxed">
-              InfoVoto es una herramienta educativa e informativa independiente. La información proviene de fuentes públicas oficiales (
+              Voti es una herramienta educativa e informativa independiente. La información proviene de fuentes públicas oficiales (
               <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                 JNE
               </a>
@@ -141,7 +151,7 @@ export default function Footer() {
               <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                 ONPE
               </a>
-              ). InfoVoto NO es un servicio oficial del gobierno peruano. NO recomendamos ni apoyamos a ningún candidato o partido político.
+              ). Voti NO es un servicio oficial del gobierno peruano. NO recomendamos ni apoyamos a ningún candidato o partido político.
               Verifica siempre en las fuentes oficiales. Las consultas se almacenan de forma anónima para mejorar el sistema.
             </p>
           </motion.div>
@@ -154,7 +164,14 @@ export default function Footer() {
           viewport={{ once: true }}
           className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500"
         >
-          <p>&copy; 2026 InfoVoto Perú. Todos los derechos reservados.</p>
+          <div className="flex flex-col gap-1">
+            <p>&copy; 2026 Voti. Todos los derechos reservados.</p>
+            <p className="text-xs text-gray-600">
+              Creado por{" "}
+              <span className="text-gray-500 font-medium">Cristian Lazo Quispe</span>
+              {" "}— Machine Learning Researcher
+            </p>
+          </div>
           <div className="flex gap-6 mt-4 md:mt-0">
             <a href="#" className="hover:text-gray-300 transition">
               Twitter

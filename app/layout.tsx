@@ -4,8 +4,8 @@ import { SessionProvider } from "./session-provider";
 import { GoogleAnalytics } from "./analytics";
 
 export const metadata: Metadata = {
-  title: "InfoVoto Perú 2026",
-  description: "Información electoral verificada para las Elecciones Generales Perú 2026",
+  title: "Voti — Te ayudo a votar informado",
+  description: "Voti — Síntesis con IA de normativa electoral (Constitución, Ley Orgánica de Elecciones, JNE, ONPE). Consulta candidatos y propuestas para Perú 2026.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
