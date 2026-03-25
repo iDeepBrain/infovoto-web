@@ -46,6 +46,7 @@ const FIXED_COSTS = [
 interface DailyStats {
   date: string;
   count: number;
+  unique_users?: number;
 }
 
 export default function StatsPage() {
@@ -172,9 +173,10 @@ export default function StatsPage() {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Line Chart: Requests per day */}
+          {/* Line Chart: Consultas por día */}
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
-            <h3 className="text-white font-bold text-sm mb-4">Consultas por día (30 días)</h3>
+            <h3 className="text-white font-bold text-sm mb-1">Consultas por día</h3>
+            <p className="text-gray-500 text-xs mb-4">Últimos 30 días</p>
             {dailyData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={dailyData}>
@@ -196,26 +198,27 @@ export default function StatsPage() {
             )}
           </div>
 
-          {/* Bar Chart: same data as bar */}
+          {/* Line Chart: Usuarios únicos por día */}
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
-            <h3 className="text-white font-bold text-sm mb-4">Distribución diaria</h3>
-            {dailyData.length > 0 ? (
+            <h3 className="text-white font-bold text-sm mb-1">Usuarios únicos por día</h3>
+            <p className="text-gray-500 text-xs mb-4">Últimos 30 días</p>
+            {dailyData.length > 0 && dailyData.some((d) => d.unique_users != null) ? (
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={dailyData}>
+                <LineChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                   <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
                   <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
                   <Tooltip
                     contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 8 }}
                     labelStyle={{ color: "#f8fafc" }}
-                    itemStyle={{ color: "#3b82f6" }}
+                    itemStyle={{ color: "#34d399" }}
                   />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <Line type="monotone" dataKey="unique_users" stroke="#34d399" strokeWidth={2} dot={{ fill: "#34d399", r: 3 }} />
+                </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[250px] flex items-center justify-center text-gray-500 text-sm">
-                Sin datos aún.
+              <div className="h-[250px] flex items-center justify-center text-center text-gray-500 text-sm px-6">
+                El gateway necesita retornar <code className="text-amber-400 mx-1">unique_users</code> en <code className="text-amber-400">/analytics/daily-stats</code>
               </div>
             )}
           </div>
