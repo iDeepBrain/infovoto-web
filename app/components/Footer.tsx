@@ -166,10 +166,10 @@ export default function Footer() {
         >
           <div className="flex flex-col gap-1">
             <p>&copy; 2026 Voti. Todos los derechos reservados.</p>
-            <p className="text-xs text-gray-600">
-              Creado por{" "}
-              <span className="text-gray-500 font-medium">Cristian Lazo Quispe</span>
-              {" "}— Machine Learning Researcher
+            <p className="text-xs text-gray-400">
+              Por{" "}
+              <span className="text-gray-300 font-medium">Cristian Lazo Quispe</span>
+              {" "}· Machine Learning Researcher
             </p>
           </div>
           <div className="flex gap-6 mt-4 md:mt-0">
