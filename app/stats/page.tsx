@@ -18,6 +18,9 @@ interface UserStats {
   avg_request_duration_ms: number;
   requests_today: number;
   requests_last_7_days: number;
+  // Platform-wide stats (admin only)
+  total_unique_users?: number;
+  total_platform_requests?: number;
   // Token data (optional — populated if gateway returns it)
   total_tokens_input?: number;
   total_tokens_output?: number;
@@ -149,9 +152,17 @@ export default function StatsPage() {
           </div>
         )}
 
+        {/* Platform-wide KPIs */}
+        {(stats?.total_unique_users != null || stats?.total_platform_requests != null) && (
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <StatCard label="Usuarios únicos" value={stats?.total_unique_users ?? 0} color="text-emerald-400" />
+            <StatCard label="Consultas totales (plataforma)" value={stats?.total_platform_requests ?? 0} color="text-sky-400" />
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <StatCard label="Total consultas" value={stats?.total_requests ?? 0} color="text-white" />
+          <StatCard label="Mis consultas" value={stats?.total_requests ?? 0} color="text-white" />
           <StatCard label="Hoy" value={stats?.requests_today ?? 0} color="text-amber-400" />
           <StatCard label="Últimos 7 días" value={stats?.requests_last_7_days ?? 0} color="text-green-400" />
           <StatCard label="Ingresos" value={stats?.total_logins ?? 0} color="text-blue-400" />
