@@ -1,5 +1,5 @@
 { "frames": {
-   "sprite-1774345579994916000 0.aseprite": {
+   "voti_explaining_talking_nobg 0.aseprite": {
     "frame": { "x": 0, "y": 0, "w": 472, "h": 618 },
     "rotated": false,
     "trimmed": false,
@@ -7,7 +7,7 @@
     "sourceSize": { "w": 472, "h": 618 },
     "duration": 150
    },
-   "sprite-1774345579994916000 1.aseprite": {
+   "voti_explaining_talking_nobg 1.aseprite": {
     "frame": { "x": 472, "y": 0, "w": 472, "h": 618 },
     "rotated": false,
     "trimmed": false,
@@ -15,7 +15,7 @@
     "sourceSize": { "w": 472, "h": 618 },
     "duration": 150
    },
-   "sprite-1774345579994916000 2.aseprite": {
+   "voti_explaining_talking_nobg 2.aseprite": {
     "frame": { "x": 944, "y": 0, "w": 472, "h": 618 },
     "rotated": false,
     "trimmed": false,
@@ -23,7 +23,7 @@
     "sourceSize": { "w": 472, "h": 618 },
     "duration": 150
    },
-   "sprite-1774345579994916000 3.aseprite": {
+   "voti_explaining_talking_nobg 3.aseprite": {
     "frame": { "x": 1416, "y": 0, "w": 472, "h": 618 },
     "rotated": false,
     "trimmed": false,
@@ -31,7 +31,7 @@
     "sourceSize": { "w": 472, "h": 618 },
     "duration": 150
    },
-   "sprite-1774345579994916000 4.aseprite": {
+   "voti_explaining_talking_nobg 4.aseprite": {
     "frame": { "x": 1888, "y": 0, "w": 472, "h": 618 },
     "rotated": false,
     "trimmed": false,
@@ -39,7 +39,7 @@
     "sourceSize": { "w": 472, "h": 618 },
     "duration": 150
    },
-   "sprite-1774345579994916000 5.aseprite": {
+   "voti_explaining_talking_nobg 5.aseprite": {
     "frame": { "x": 2360, "y": 0, "w": 472, "h": 618 },
     "rotated": false,
     "trimmed": false,
