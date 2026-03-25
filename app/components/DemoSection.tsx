@@ -5,20 +5,20 @@ import { motion } from "framer-motion";
 
 const demoQuestions = [
   {
-    icon: "📄",
-    text: "¿Cual es la hoja de vida de Antauro Humala?",
+    icon: "🗳️",
+    text: "¿En qué consiste el voto preferencial?",
   },
   {
-    icon: "⚖️",
-    text: "Compara propuestas de educacion entre Lopez Aliaga y Fujimori",
+    icon: "💸",
+    text: "¿Cuánto es la multa por no votar en 2026?",
   },
   {
-    icon: "💰",
-    text: "¿Cuanto gana el candidato Daniel Urresti?",
+    icon: "🪪",
+    text: "¿Puedo votar con DNI vencido?",
   },
   {
-    icon: "🎓",
-    text: "¿Que estudios tiene Keiko Fujimori?",
+    icon: "📚",
+    text: "Compara el plan de gobierno en educación entre Renovación Popular y Fuerza Popular",
   },
 ];
 
