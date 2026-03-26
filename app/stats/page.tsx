@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer, BarChart, Bar,
 } from "recharts";
 
-const ADMIN_EMAIL = "cristian2023ml@gmail.com";
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "";
 
 type Lang = "es" | "en";
 
@@ -36,6 +36,10 @@ const t: Record<Lang, Record<string, string>> = {
     costPerQuery: "Costo por consulta",
     fixedCosts: "Costos fijos del proyecto",
     investmentGoal: "Inversión objetivo: ~$100 en las 2 semanas pre-elecciones (abril 2026)",
+    byCountry: "Consultas por país",
+    byCity: "Consultas por ciudad",
+    noGeoData: "Aún no hay datos de geolocalización.",
+    queries: "consultas",
   },
   en: {
     title: "Admin Dashboard",
@@ -60,6 +64,10 @@ const t: Record<Lang, Record<string, string>> = {
     costPerQuery: "Cost per query",
     fixedCosts: "Project fixed costs",
     investmentGoal: "Target spend: ~$100 in the 2 weeks before elections (April 2026)",
+    byCountry: "Queries by country",
+    byCity: "Queries by city",
+    noGeoData: "No geolocation data yet.",
+    queries: "queries",
   },
 };
 
@@ -108,6 +116,13 @@ const FIXED_COSTS: Record<Lang, { label: string; amount: string; note: string }[
   ],
 };
 
+interface GeoStat {
+  country_code: string;
+  country_name: string;
+  city: string;
+  count: number;
+}
+
 interface DailyStats {
   date: string;
   count: number;          // mapped from gateway's total_requests
@@ -118,6 +133,7 @@ export default function StatsPage() {
   const { data: session, status } = useSession();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [dailyData, setDailyData] = useState<DailyStats[]>([]);
+  const [geoData, setGeoData] = useState<GeoStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>("es");
@@ -136,9 +152,10 @@ export default function StatsPage() {
 
   async function fetchAllData() {
     try {
-      const [statsRes, dailyRes] = await Promise.allSettled([
+      const [statsRes, dailyRes, geoRes] = await Promise.allSettled([
         fetch("/api/analytics/stats"),
         fetch("/api/analytics/daily-stats?days=30"),
+        fetch("/api/analytics/geo-stats"),
       ]);
 
       // /analytics/stats
@@ -168,6 +185,11 @@ export default function StatsPage() {
         } else {
           console.error("daily-stats failed:", dailyRes.value.status);
         }
+      }
+      // /analytics/geo-stats
+      if (geoRes.status === "fulfilled" && geoRes.value.ok) {
+        const raw = await geoRes.value.json();
+        setGeoData(Array.isArray(raw) ? raw : []);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error cargando datos");
@@ -232,6 +254,21 @@ export default function StatsPage() {
 
   const hasQueryData = dailyData.length > 0 && dailyData.some((d) => d.count > 0);
   const hasUserData = dailyData.length > 0 && dailyData.some((d) => d.unique_users != null);
+
+  // Aggregate geo data: by country and by city
+  const countryData = Object.values(
+    geoData.reduce<Record<string, { name: string; count: number }>>((acc, g) => {
+      const key = g.country_code;
+      if (!acc[key]) acc[key] = { name: g.country_name || key, count: 0 };
+      acc[key].count += g.count;
+      return acc;
+    }, {}),
+  ).sort((a, b) => b.count - a.count);
+
+  const cityData = geoData
+    .map((g) => ({ name: `${g.city}, ${g.country_code}`, count: g.count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15);
 
   return (
     <div className="min-h-screen bg-[#0a0f1a] relative">
@@ -325,6 +362,57 @@ export default function StatsPage() {
               <div className="h-[250px] flex items-center justify-center text-center text-gray-500 text-sm px-6">
                 El gateway necesita retornar <code className="text-amber-400 mx-1">unique_users</code> en{" "}
                 <code className="text-amber-400">/analytics/daily-stats</code>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Geo Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* By Country */}
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
+            <h3 className="text-white font-bold text-sm mb-4">{l.byCountry}</h3>
+            {countryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={Math.max(150, countryData.length * 36)}>
+                <BarChart data={countryData} layout="vertical" margin={{ left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+                  <XAxis type="number" tick={{ fill: "#64748b", fontSize: 10 }} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: "#cbd5e1", fontSize: 11 }} width={80} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 8 }}
+                    labelStyle={{ color: "#f8fafc" }}
+                    formatter={(value) => [`${value} ${l.queries}`, ""]}
+                  />
+                  <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[120px] flex items-center justify-center text-gray-500 text-sm">
+                {l.noGeoData}
+              </div>
+            )}
+          </div>
+
+          {/* By City */}
+          <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
+            <h3 className="text-white font-bold text-sm mb-4">{l.byCity}</h3>
+            {cityData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={Math.max(150, cityData.length * 36)}>
+                <BarChart data={cityData} layout="vertical" margin={{ left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+                  <XAxis type="number" tick={{ fill: "#64748b", fontSize: 10 }} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: "#cbd5e1", fontSize: 11 }} width={100} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 8 }}
+                    labelStyle={{ color: "#f8fafc" }}
+                    formatter={(value) => [`${value} ${l.queries}`, ""]}
+                  />
+                  <Bar dataKey="count" fill="#06b6d4" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[120px] flex items-center justify-center text-gray-500 text-sm">
+                {l.noGeoData}
               </div>
             )}
           </div>
