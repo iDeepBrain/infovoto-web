@@ -68,14 +68,10 @@ export default function StatsPage() {
   }, [status, session]);
 
   async function fetchAllData() {
-    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
-    const idToken = (session as any)?.id_token;
-    const headers = { Authorization: `Bearer ${idToken}` };
-
     try {
       const [statsRes, dailyRes] = await Promise.allSettled([
-        fetch(`${gatewayUrl}/analytics/stats`, { headers }),
-        fetch(`${gatewayUrl}/analytics/daily-stats?days=30`, { headers }),
+        fetch("/api/analytics/stats"),
+        fetch("/api/analytics/daily-stats?days=30"),
       ]);
 
       // /analytics/stats
