@@ -31,11 +31,17 @@ export class Logger {
     }
   }
 
+  private get isBrowserProd(): boolean {
+    return typeof window !== "undefined" && process.env.NODE_ENV === "production";
+  }
+
   debug(message: string, data?: any) {
+    if (this.isBrowserProd) return;
     console.debug(this.formatMessage("debug", message, data));
   }
 
   info(message: string, data?: any) {
+    if (this.isBrowserProd) return;
     console.info(this.formatMessage("info", message, data));
   }
 

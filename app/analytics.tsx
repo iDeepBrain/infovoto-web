@@ -10,7 +10,6 @@ export function GoogleAnalytics() {
   const measurementId = process.env.NEXT_PUBLIC_GA_ID;
 
   if (!measurementId) {
-    console.warn("NEXT_PUBLIC_GA_ID not configured — GA4 disabled");
     return null;
   }
 
