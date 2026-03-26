@@ -1,0 +1,33 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - '-t'
+      - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$COMMIT_SHA'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:latest'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_GATEWAY_URL=https://gateway-630531001367.us-central1.run.app'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - '--all-tags'
+      - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web'
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - web
+      - '--image=us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$COMMIT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+
+images:
+  - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
