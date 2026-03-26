@@ -14,11 +14,9 @@ function hashEmail(email: string): string {
   return createHash("sha256").update(email.toLowerCase().trim()).digest("hex");
 }
 
-export const ADMIN_EMAIL = "cristian2023ml@gmail.com";
-
 const log = createLogger("NextAuth");
 
-const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
+const GATEWAY_URL = process.env.GATEWAY_URL || process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
 const SESSION_MAX_AGE = parseInt(process.env.NEXT_AUTH_SESSION_MAX_AGE || "300", 10); // Default: 5 minutes (300s)
 
 export const authOptions: NextAuthOptions = {
@@ -124,7 +122,6 @@ export const authOptions: NextAuthOptions = {
       (session as any).id_token = token.id_token;
       (session as any).error = token.error;
       (session as any).emailHash = token.email ? hashEmail(token.email as string) : undefined;
-      (session as any).isAdmin = token.email === ADMIN_EMAIL;
 
       return session;
     },

@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ detail: "Message required" }, { status: 400 });
   }
 
-  // 3. Forward al gateway con Bearer + API Key
+  // 3. Forward al gateway con Bearer + API Key + client IP
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
   try {
     const res = await fetch(`${GATEWAY_URL}/api/chat`, {
       method: "POST",
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
         ...(API_KEY && { "X-API-Key": API_KEY }),
+        ...(clientIp && { "X-Real-IP": clientIp }),
       },
       body: JSON.stringify({ message: body.message }),
       signal: AbortSignal.timeout(20000),
