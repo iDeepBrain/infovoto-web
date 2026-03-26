@@ -10,6 +10,59 @@ import {
 
 const ADMIN_EMAIL = "cristian2023ml@gmail.com";
 
+type Lang = "es" | "en";
+
+const t: Record<Lang, Record<string, string>> = {
+  es: {
+    title: "Dashboard Admin",
+    subtitle: "Métricas de Voti",
+    chat: "← Chat",
+    loading: "Cargando estadísticas...",
+    loginPrompt: "Inicia sesión para ver estadísticas",
+    loginBtn: "Iniciar sesión",
+    restricted: "Acceso restringido a administradores",
+    back: "← Volver al Chat",
+    uniqueUsers: "Usuarios únicos",
+    totalQueries: "Consultas totales",
+    queriesPerUser: "Consultas/usuario",
+    avgLatency: "Latencia promedio",
+    queriesPerDay: "Consultas por día",
+    usersPerDay: "Usuarios únicos por día",
+    last30: "Últimos 30 días",
+    geminiCost: "Costo Gemini estimado",
+    noTokens: "Sin datos de tokens aún.",
+    tokensInput: "Tokens input",
+    tokensOutput: "Tokens output",
+    costPerQuery: "Costo por consulta",
+    fixedCosts: "Costos fijos del proyecto",
+    investmentGoal: "Inversión objetivo: ~$100 en las 2 semanas pre-elecciones (abril 2026)",
+  },
+  en: {
+    title: "Admin Dashboard",
+    subtitle: "Voti Metrics",
+    chat: "← Chat",
+    loading: "Loading stats...",
+    loginPrompt: "Sign in to view statistics",
+    loginBtn: "Sign in",
+    restricted: "Restricted to administrators",
+    back: "← Back to Chat",
+    uniqueUsers: "Unique users",
+    totalQueries: "Total queries",
+    queriesPerUser: "Queries/user",
+    avgLatency: "Avg latency",
+    queriesPerDay: "Queries per day",
+    usersPerDay: "Unique users per day",
+    last30: "Last 30 days",
+    geminiCost: "Estimated Gemini cost",
+    noTokens: "No token data yet.",
+    tokensInput: "Input tokens",
+    tokensOutput: "Output tokens",
+    costPerQuery: "Cost per query",
+    fixedCosts: "Project fixed costs",
+    investmentGoal: "Target spend: ~$100 in the 2 weeks before elections (April 2026)",
+  },
+};
+
 interface UserStats {
   user_id: string;
   total_requests: number;
@@ -34,14 +87,26 @@ function calcGeminiCost(tokensIn: number, tokensOut: number): number {
   return (tokensIn * GEMINI_PRICE_INPUT + tokensOut * GEMINI_PRICE_OUTPUT) / 1_000_000;
 }
 
-const FIXED_COSTS = [
-  { label: "voti.pe", amount: "$35/año", note: "Dominio" },
-  { label: "voti.com.pe", amount: "$35/año", note: "Dominio" },
-  { label: "infovoto.com", amount: "$15/año", note: "Dominio (comprado)" },
-  { label: "Claude Code Max", amount: "$100/mes", note: "Dev tooling" },
-  { label: "GCP", amount: "$300 créditos", note: "Free tier disponible" },
-  { label: "Supabase", amount: "Gratis", note: "Free tier" },
-];
+const FIXED_COSTS: Record<Lang, { label: string; amount: string; note: string }[]> = {
+  es: [
+    { label: "voti.pe", amount: "$35/año", note: "Dominio" },
+    { label: "voti.com.pe", amount: "$35/año", note: "Dominio" },
+    { label: "infovoto.com", amount: "$15/año", note: "Dominio (comprado)" },
+    { label: "Claude Code Max", amount: "$100/mes", note: "Dev tooling" },
+    { label: "GCP", amount: "$300 créditos", note: "Free tier disponible" },
+    { label: "Supabase", amount: "Gratis", note: "Free tier" },
+    { label: "Redis (Upstash)", amount: "Gratis", note: "Free tier" },
+  ],
+  en: [
+    { label: "voti.pe", amount: "$35/yr", note: "Domain" },
+    { label: "voti.com.pe", amount: "$35/yr", note: "Domain" },
+    { label: "infovoto.com", amount: "$15/yr", note: "Domain (purchased)" },
+    { label: "Claude Code Max", amount: "$100/mo", note: "Dev tooling" },
+    { label: "GCP", amount: "$300 credits", note: "Free tier available" },
+    { label: "Supabase", amount: "Free", note: "Free tier" },
+    { label: "Redis (Upstash)", amount: "Free", note: "Free tier" },
+  ],
+};
 
 interface DailyStats {
   date: string;
@@ -55,7 +120,9 @@ export default function StatsPage() {
   const [dailyData, setDailyData] = useState<DailyStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lang, setLang] = useState<Lang>("es");
 
+  const l = t[lang];
   const isAdmin = (session as any)?.user?.email === ADMIN_EMAIL;
 
   useEffect(() => {
@@ -112,7 +179,7 @@ export default function StatsPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
-        <div className="text-gray-400">Cargando estadísticas...</div>
+        <div className="text-gray-400">{t[lang].loading}</div>
       </div>
     );
   }
@@ -121,9 +188,9 @@ export default function StatsPage() {
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 mb-4">Inicia sesión para ver estadísticas</p>
+          <p className="text-gray-400 mb-4">{t[lang].loginPrompt}</p>
           <Link href="/login" className="px-6 py-2 bg-amber-500 text-[#0a0f1a] rounded-lg font-bold">
-            Iniciar sesión
+            {t[lang].loginBtn}
           </Link>
         </div>
       </div>
@@ -134,9 +201,9 @@ export default function StatsPage() {
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 mb-4">Acceso restringido a administradores</p>
+          <p className="text-gray-400 mb-4">{l.restricted}</p>
           <Link href="/chat" className="px-6 py-2 bg-[#1e293b] text-white rounded-lg border border-[#334155]">
-            ← Volver al Chat
+            {l.back}
           </Link>
         </div>
       </div>
@@ -178,12 +245,20 @@ export default function StatsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white">Dashboard Admin</h1>
-            <p className="text-gray-400 text-sm mt-1">Métricas de Voti</p>
+            <h1 className="text-2xl font-bold text-white">{l.title}</h1>
+            <p className="text-gray-400 text-sm mt-1">{l.subtitle}</p>
           </div>
-          <Link href="/chat" className="px-4 py-2 bg-[#1e293b] text-gray-300 rounded-lg border border-[#334155] text-sm hover:bg-[#334155] transition">
-            ← Chat
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLang(lang === "es" ? "en" : "es")}
+              className="px-3 py-2 bg-[#1e293b] text-gray-300 rounded-lg border border-[#334155] text-xs hover:bg-[#334155] transition font-mono"
+            >
+              {lang === "es" ? "EN" : "ES"}
+            </button>
+            <Link href="/chat" className="px-4 py-2 bg-[#1e293b] text-gray-300 rounded-lg border border-[#334155] text-sm hover:bg-[#334155] transition">
+              {l.chat}
+            </Link>
+          </div>
         </div>
 
         {error && (
@@ -194,18 +269,18 @@ export default function StatsPage() {
 
         {/* Adopción KPIs — 4 cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Usuarios únicos" value={stats?.total_unique_users ?? 0} color="text-emerald-400" />
-          <StatCard label="Consultas totales" value={stats?.total_platform_requests ?? 0} color="text-sky-400" />
-          <StatCard label="Consultas/usuario" value={avgPerUser} color="text-purple-400" />
-          <StatCard label="Latencia promedio" value={latencyLabel} color="text-amber-400" />
+          <StatCard label={l.uniqueUsers} value={stats?.total_unique_users ?? 0} color="text-emerald-400" />
+          <StatCard label={l.totalQueries} value={stats?.total_platform_requests ?? 0} color="text-sky-400" />
+          <StatCard label={l.queriesPerUser} value={avgPerUser} color="text-purple-400" />
+          <StatCard label={l.avgLatency} value={latencyLabel} color="text-amber-400" />
         </div>
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Line Chart: Consultas por día */}
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
-            <h3 className="text-white font-bold text-sm mb-1">Consultas por día</h3>
-            <p className="text-gray-500 text-xs mb-4">Últimos 30 días</p>
+            <h3 className="text-white font-bold text-sm mb-1">{l.queriesPerDay}</h3>
+            <p className="text-gray-500 text-xs mb-4">{l.last30}</p>
             {hasQueryData ? (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={dailyData}>
@@ -230,8 +305,8 @@ export default function StatsPage() {
 
           {/* Line Chart: Usuarios únicos por día */}
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
-            <h3 className="text-white font-bold text-sm mb-1">Usuarios únicos por día</h3>
-            <p className="text-gray-500 text-xs mb-4">Últimos 30 días</p>
+            <h3 className="text-white font-bold text-sm mb-1">{l.usersPerDay}</h3>
+            <p className="text-gray-500 text-xs mb-4">{l.last30}</p>
             {hasUserData ? (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={dailyData}>
@@ -259,7 +334,7 @@ export default function StatsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Gemini API Cost */}
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
-            <h3 className="text-white font-bold text-sm mb-4">💸 Costo Gemini estimado</h3>
+            <h3 className="text-white font-bold text-sm mb-4">{l.geminiCost}</h3>
             {stats?.total_tokens_input != null || stats?.total_tokens_output != null ? (
               <>
                 <div className="text-3xl font-bold text-emerald-400 mb-4">
@@ -267,19 +342,19 @@ export default function StatsPage() {
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-gray-400">
-                    <span>Tokens input ({(stats?.total_tokens_input ?? 0).toLocaleString()})</span>
+                    <span>{l.tokensInput} ({(stats?.total_tokens_input ?? 0).toLocaleString()})</span>
                     <span className="text-blue-400">
                       ${((stats?.total_tokens_input ?? 0) * GEMINI_PRICE_INPUT / 1_000_000).toFixed(4)}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>Tokens output ({(stats?.total_tokens_output ?? 0).toLocaleString()})</span>
+                    <span>{l.tokensOutput} ({(stats?.total_tokens_output ?? 0).toLocaleString()})</span>
                     <span className="text-orange-400">
                       ${((stats?.total_tokens_output ?? 0) * GEMINI_PRICE_OUTPUT / 1_000_000).toFixed(4)}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>Costo por consulta</span>
+                    <span>{l.costPerQuery}</span>
                     <span className="text-purple-400">{costPerQuery}</span>
                   </div>
                   <div className="pt-2 border-t border-[#1e293b] text-xs text-gray-500">
@@ -289,7 +364,7 @@ export default function StatsPage() {
               </>
             ) : (
               <div className="text-gray-500 text-sm">
-                <p>Sin datos de tokens aún.</p>
+                <p>{l.noTokens}</p>
                 <p className="mt-2 text-xs">El gateway necesita retornar <code className="text-amber-400">total_tokens_input</code> y <code className="text-amber-400">total_tokens_output</code> en <code className="text-amber-400">/analytics/stats</code>.</p>
               </div>
             )}
@@ -297,9 +372,9 @@ export default function StatsPage() {
 
           {/* Fixed Costs */}
           <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-5">
-            <h3 className="text-white font-bold text-sm mb-4">📋 Costos fijos del proyecto</h3>
+            <h3 className="text-white font-bold text-sm mb-4">{l.fixedCosts}</h3>
             <div className="space-y-2">
-              {FIXED_COSTS.map((item) => (
+              {FIXED_COSTS[lang].map((item) => (
                 <div key={item.label} className="flex items-center justify-between text-sm">
                   <div>
                     <span className="text-gray-300 font-medium">{item.label}</span>
@@ -310,7 +385,7 @@ export default function StatsPage() {
               ))}
             </div>
             <div className="mt-4 pt-3 border-t border-[#1e293b] text-xs text-gray-500">
-              Inversión objetivo: ~$100 en las 2 semanas pre-elecciones (abril 2026)
+              {l.investmentGoal}
             </div>
           </div>
         </div>
