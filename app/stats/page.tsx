@@ -45,8 +45,8 @@ const FIXED_COSTS = [
 
 interface DailyStats {
   date: string;
-  count: number;
-  unique_users?: number;
+  count: number;          // mapped from gateway's total_requests
+  unique_users: number;   // mapped from gateway's unique_users
 }
 
 export default function StatsPage() {
@@ -69,7 +69,8 @@ export default function StatsPage() {
 
   async function fetchAllData() {
     const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
-    const headers = { Authorization: `Bearer ${(session as any)?.id_token}` };
+    const idToken = (session as any)?.id_token;
+    const headers = { Authorization: `Bearer ${idToken}` };
 
     try {
       const [statsRes, dailyRes] = await Promise.allSettled([
@@ -77,12 +78,33 @@ export default function StatsPage() {
         fetch(`${gatewayUrl}/analytics/daily-stats?days=30`, { headers }),
       ]);
 
-      if (statsRes.status === "fulfilled" && statsRes.value.ok) {
-        setStats(await statsRes.value.json());
+      // /analytics/stats
+      if (statsRes.status === "fulfilled") {
+        if (statsRes.value.ok) {
+          setStats(await statsRes.value.json());
+        } else {
+          const errText = await statsRes.value.text();
+          setError(`Error ${statsRes.value.status}: ${errText}`);
+        }
+      } else {
+        setError(`No se pudo conectar al gateway: ${statsRes.reason}`);
       }
-      if (dailyRes.status === "fulfilled" && dailyRes.value.ok) {
-        const raw = await dailyRes.value.json();
-        setDailyData(Array.isArray(raw) ? raw : raw.data || []);
+
+      // /analytics/daily-stats — map gateway field names to frontend
+      if (dailyRes.status === "fulfilled") {
+        if (dailyRes.value.ok) {
+          const raw = await dailyRes.value.json();
+          const arr: any[] = Array.isArray(raw) ? raw : raw.data || [];
+          setDailyData(
+            arr.map((d: any) => ({
+              date: d.date,
+              count: d.total_requests ?? d.count ?? 0,
+              unique_users: d.unique_users ?? 0,
+            })),
+          );
+        } else {
+          console.error("daily-stats failed:", dailyRes.value.status);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error cargando datos");
