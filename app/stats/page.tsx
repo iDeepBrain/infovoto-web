@@ -8,7 +8,6 @@ import {
   ResponsiveContainer, BarChart, Bar,
 } from "recharts";
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "";
 
 type Lang = "es" | "en";
 
@@ -136,10 +135,10 @@ export default function StatsPage() {
   const [geoData, setGeoData] = useState<GeoStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [forbidden, setForbidden] = useState(false);
   const [lang, setLang] = useState<Lang>("es");
 
   const l = t[lang];
-  const isAdmin = (session as any)?.user?.email === ADMIN_EMAIL;
 
   useEffect(() => {
     if (status === "authenticated" && (session as any)?.id_token) {
@@ -158,8 +157,12 @@ export default function StatsPage() {
         fetch("/api/analytics/geo-stats"),
       ]);
 
-      // /analytics/stats
+      // /analytics/stats — also handles 403 (admin check server-side)
       if (statsRes.status === "fulfilled") {
+        if (statsRes.value.status === 403) {
+          setForbidden(true);
+          return;
+        }
         if (statsRes.value.ok) {
           setStats(await statsRes.value.json());
         } else {
@@ -182,8 +185,6 @@ export default function StatsPage() {
               unique_users: d.unique_users ?? 0,
             })),
           );
-        } else {
-          console.error("daily-stats failed:", dailyRes.value.status);
         }
       }
       // /analytics/geo-stats
@@ -219,7 +220,7 @@ export default function StatsPage() {
     );
   }
 
-  if (!isAdmin) {
+  if (forbidden) {
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
         <div className="text-center">
