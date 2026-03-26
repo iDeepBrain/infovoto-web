@@ -270,12 +270,12 @@ export default function ChatPage() {
             </button>
           </div>
         ) : (
-          <button
-            onClick={() => signIn("google", { callbackUrl: "/chat" })}
+          <a
+            href="/login"
             className="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-[#0a0f1a] font-bold rounded-lg transition"
           >
             Iniciar sesión
-          </button>
+          </a>
         )}
       </header>
 
@@ -481,12 +481,12 @@ export default function ChatPage() {
             </button>
           </>
         ) : (
-          <button
-            onClick={() => signIn("google", { callbackUrl: "/chat" })}
-            className="flex-1 bg-amber-500 text-[#0a0f1a] font-bold py-3 rounded-full hover:bg-amber-400 transition text-sm"
+          <a
+            href="/login"
+            className="flex-1 bg-amber-500 text-[#0a0f1a] font-bold py-3 rounded-full hover:bg-amber-400 transition text-sm text-center"
           >
-            Inicia sesión con Google para preguntar
-          </button>
+            Inicia sesión para preguntar
+          </a>
         )}
       </div>
     </div>
