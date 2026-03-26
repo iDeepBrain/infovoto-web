@@ -27,7 +27,7 @@ export default function PrivacyPage() {
         </p>
         <ul className="text-sm leading-relaxed list-disc list-inside space-y-1 pl-2">
           <li>Un identificador anónimo (hash criptográfico irreversible de tu cuenta de Google)</li>
-          <li>Un hash de tu email (SHA-256, no se puede revertir a tu email original)</li>
+          <li>Un hash criptográfico irreversible de tu email (no se puede revertir a tu email original)</li>
           <li>Tu ciudad y país (obtenidos de forma aproximada, para estadísticas de uso)</li>
           <li>Tus consultas a Voti (para mejorar la calidad de las respuestas)</li>
         </ul>
@@ -56,8 +56,8 @@ export default function PrivacyPage() {
         </p>
         <ul className="text-sm leading-relaxed list-disc list-inside space-y-1 pl-2">
           <li>Google OAuth (para la autenticación — sujeto a la política de privacidad de Google)</li>
-          <li>Google Analytics (estadísticas anónimas de uso del sitio)</li>
-          <li>Servidores en Google Cloud Platform (infraestructura)</li>
+          <li>Google Analytics (recopila datos de navegación como páginas visitadas, tiempo de uso, tipo de dispositivo y ubicación aproximada — sujeto a la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-gray-400 underline hover:text-white transition">política de privacidad de Google</a>)</li>
+          <li>Infraestructura de servidores en la nube con certificaciones de seguridad internacionales</li>
         </ul>
       </section>
 
@@ -73,26 +73,18 @@ export default function PrivacyPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold text-white">6. Tus derechos (Ley 29733)</h2>
         <p className="text-sm leading-relaxed">
-          Según la Ley N.° 29733, Ley de Protección de Datos Personales del Perú, tienes
-          derecho a:
+          La Ley N.° 29733, Ley de Protección de Datos Personales del Perú, otorga derechos
+          de Acceso, Rectificación, Cancelación y Oposición (ARCO) sobre datos personales.
         </p>
-        <ul className="text-sm leading-relaxed space-y-2 pl-2">
-          <li>
-            <strong className="text-white">Acceso:</strong> Solicitar qué datos tenemos sobre ti
-          </li>
-          <li>
-            <strong className="text-white">Rectificación:</strong> Corregir datos inexactos
-          </li>
-          <li>
-            <strong className="text-white">Cancelación:</strong> Solicitar la eliminación de tus datos
-          </li>
-          <li>
-            <strong className="text-white">Oposición:</strong> Oponerte al tratamiento de tus datos
-          </li>
-        </ul>
-        <p className="text-sm leading-relaxed mt-2">
-          Para ejercer estos derechos, contáctanos a través de los canales disponibles en la
-          sección de contacto de nuestro sitio.
+        <p className="text-sm leading-relaxed">
+          Dado que almacenamos tus datos de forma anonimizada — mediante hashes criptográficos
+          irreversibles que no permiten vincularte a tu identidad — estos datos no constituyen
+          &quot;datos personales&quot; en los términos de la ley, y los derechos ARCO no son
+          ejercitables de forma tradicional.
+        </p>
+        <p className="text-sm leading-relaxed">
+          Al usar el servicio, aceptas este modelo de tratamiento de datos. Si tienes alguna
+          consulta, puedes contactarnos a través de los canales disponibles en nuestro sitio.
         </p>
       </section>
 
