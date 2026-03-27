@@ -1,0 +1,42 @@
+graph TD
+    ROOT[RootLayout<br/>layout.tsx] --> SP[SessionProvider]
+    ROOT --> GA[Analytics GA4]
+
+    SP --> LANDING["Landing — /"]
+    SP --> LOGIN["Login — /login"]
+    SP --> CHAT["Chat — /chat 🔒"]
+    SP --> STATS["Stats — /stats 🔒 admin"]
+    SP --> LEGAL["Legal — /privacy /terms"]
+
+    LANDING --> NAV[Navbar<br/>sticky, responsive]
+    LANDING --> HERO[HeroSection<br/>VotiSprite idle → happy on hover]
+    LANDING --> STORY[VotiStorySection<br/>narrativa de marca]
+    LANDING --> DEMO[DemoSection<br/>6 preguntas → /chat?q=]
+    LANDING --> FEAT[FeaturesSection<br/>3 cards + VotiSprite por estado]
+    LANDING --> GRID[FeaturesGrid<br/>6 cards: candidatos, propuestas...]
+    LANDING --> HOW[HowItWorksSection<br/>3 pasos ilustrados]
+    LANDING --> STATSEC[StatsSection<br/>contadores animados Framer Motion]
+    LANDING --> TRUST[TrustSection<br/>VotiSprite + disclaimer legal]
+    LANDING --> FOOT[Footer<br/>links JNE/ONPE, copyright]
+
+    CHAT --> CHEADER[Header<br/>VotiAvatar 48px reactivo al estado]
+    CHAT --> CONSENT[Banner consentimiento<br/>dismiss → localStorage]
+    CHAT --> EMPTY[Empty state<br/>VotiSprite 144px + 4 sugeridas random]
+    CHAT --> MSGS[Messages list]
+    CHAT --> LOADING[Loading bubble<br/>VotiAvatar thinking_squint]
+    CHAT --> INPUT[Input bar<br/>1000 chars + contador 80%]
+
+    MSGS --> UMSG[User bubble<br/>ámbar, derecha]
+    MSGS --> AMSG[Assistant bubble<br/>dark card + sources + warnings]
+
+    STATS --> KPIS[4 KPI cards<br/>usuarios, consultas, ratio, latencia]
+    STATS --> LQUERIES[LineChart<br/>consultas por día — 30 días]
+    STATS --> LUSERS[LineChart<br/>usuarios únicos por día]
+    STATS --> BCOUNTRY[BarChart horizontal<br/>por país]
+    STATS --> BCITY[BarChart horizontal<br/>top 15 ciudades]
+    STATS --> COST[Estimación costo Gemini<br/>tokens in/out × precio]
+
+    style CHAT fill:#f59e0b,color:#000
+    style LANDING fill:#3b82f6,color:#fff
+    style STATS fill:#8b5cf6,color:#fff
+    style LOGIN fill:#6b7280,color:#fff

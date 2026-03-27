@@ -1,0 +1,55 @@
+sequenceDiagram
+    participant U as Usuario
+    participant UI as Chat UI (Browser)
+    participant API as /api/chat (Next.js Proxy)
+    participant GW as Gateway
+    participant AI as Gemini + MCPs
+
+    Note over UI: Estado: empty state<br/>Sprite: idle_half_blink
+
+    U->>UI: Escribe pregunta (≤1000 chars)
+    UI->>UI: isTokenExpired? → válido
+    UI->>UI: Agrega msg user (amber bubble)
+    UI->>UI: setLoading(true)
+
+    Note over UI: Sprite header: thinking_squint
+
+    UI->>API: POST /api/chat {message}
+
+    Note over API: Proxy checks (no rate limit aquí)
+    API->>API: 1. getServerSession() → id_token
+    API->>API: 2. Validate body.message (tipo + largo)
+    API->>API: 3. Prompt injection filter (16 regex)
+    API->>API: 4. Inyecta X-API-Key server-side
+
+    alt Prompt injection detectada
+        API-->>UI: 200 {reply: "Solo respondo info electoral"}
+        Note over API: 0 tokens gastados, gateway no enterado
+    else Request limpio
+        API->>GW: POST /api/chat<br/>Authorization: Bearer id_token<br/>X-API-Key: gk_web_...<br/>X-Real-IP: client_ip
+
+        Note over GW: Gateway aplica rate limiting
+        alt Rate limit excedido (Redis)
+            GW-->>API: 429 Retry-After: 3600
+            API-->>UI: 429
+            UI->>UI: "Alcanzaste el límite de consultas"
+        else Token budget excedido
+            GW-->>API: 429 Daily budget exceeded
+            API-->>UI: 429
+        else OK
+            GW->>AI: Agent con Gemini + MCP tools
+            AI-->>GW: reply + sources + warnings
+            GW-->>API: {reply, sources, warnings, session_id}
+            API-->>UI: JSON response
+        end
+    end
+
+    UI->>UI: Agrega msg assistant (dark card)
+    UI->>UI: setLoading(false)
+
+    Note over UI: Sprite: explaining_talking<br/>Sources chips + warnings ámbar
+
+    alt Error de red / timeout
+        UI->>UI: Sprite: loading_worried
+        UI->>UI: Mensaje de error amigable
+    end

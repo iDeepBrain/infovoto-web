@@ -1,0 +1,39 @@
+stateDiagram-v2
+    [*] --> Loading : page mount
+
+    Loading --> EmptyState : authenticated + id_token
+    Loading --> UnauthState : unauthenticated
+
+    UnauthState --> [*] : muestra botón login
+
+    EmptyState --> Sending : usuario envía mensaje
+    EmptyState --> EmptyState : click sugerida → pre-rellena input
+
+    Sending --> Responding : gateway responde 200
+    Sending --> ErrorAuth : 401 / AuthError
+    Sending --> ErrorRateLimit : 429 / RateLimitError
+    Sending --> ErrorTimeout : 15s / TimeoutError
+    Sending --> ErrorNetwork : fetch falló
+    Sending --> ErrorServer : otros errores
+
+    Responding --> EmptyState : no (más mensajes en historial → ConversationState)
+    Responding --> ConversationState : mensaje agregado
+
+    ConversationState --> Sending : usuario envía otro mensaje
+
+    ErrorAuth --> [*] : signOut() + redirect /login (2s)
+    ErrorRateLimit --> ConversationState : muestra mensaje amigable
+    ErrorTimeout --> ConversationState : muestra mensaje amigable
+    ErrorNetwork --> ConversationState : muestra mensaje amigable
+    ErrorServer --> ConversationState : muestra mensaje amigable
+
+    note right of Sending
+        VotiSprite: thinking_squint
+        Input: disabled
+        loading: true
+    end note
+
+    note right of Responding
+        VotiSprite: explaining_talking
+        Muestra: reply + sources + warnings
+    end note

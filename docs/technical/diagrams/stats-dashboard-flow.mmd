@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant B as Browser /stats
+    participant N as Next.js API
+    participant G as Gateway
+
+    B->>B: useEffect — status=authenticated?
+    B->>B: fetchAllData() — Promise.allSettled
+
+    par 3 fetches en paralelo
+        B->>N: GET /api/analytics/stats
+        N->>N: getServerSession() + check ADMIN_EMAIL
+        alt No admin
+            N-->>B: 403 Forbidden
+            B->>B: setForbidden(true)
+        else Es admin
+            N->>G: GET /analytics/stats (Bearer)
+            G-->>N: UserStats JSON
+            N-->>B: UserStats
+            B->>B: setStats(data)
+        end
+    and
+        B->>N: GET /api/analytics/daily-stats?days=30
+        N->>G: GET /analytics/daily-stats?days=30 (Bearer)
+        G-->>N: DailyStats[]
+        N-->>B: DailyStats[]
+        B->>B: setDailyData (map field names)
+    and
+        B->>N: GET /api/analytics/geo-stats
+        N->>G: GET /analytics/geo-stats (Bearer)
+        G-->>N: GeoStat[]
+        N-->>B: GeoStat[]
+        B->>B: setGeoData(data)
+    end
+
+    B->>B: setLoading(false)
+    B->>B: Render: KPIs + LineCharts + BarCharts + Costos

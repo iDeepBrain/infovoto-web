@@ -31,12 +31,22 @@ API routes (`/api/*`) restringidas a `NEXTAUTH_URL` origin:
 - Sin sesión → 401 "Not authenticated"
 - `id_token` extraído del JWT, nunca del request body
 
-### 4. Rate Limiting (api/chat/route.ts)
+### 4. Rate Limiting
 
-- In-memory por `user_id` (30 requests/hora)
-- Headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After`
-- Cleanup cada 10 minutos
-- Resets on deploy (stateless)
+El rate limiting vive en el **gateway** (Redis sliding window). El proxy Next.js no implementa límites propios — delega al gateway y maneja la respuesta 429:
+
+- Detecta respuesta 429 del gateway → lanza `RateLimitError` (`lib/api.ts`)
+- Muestra mensaje amigable: "Alcanzaste el límite de consultas. Por favor intenta más tarde."
+- Frontend: input limitado a 1,000 caracteres antes de enviar (`app/chat/page.tsx`)
+
+Límites efectivos para usuarios web (aplicados por el gateway):
+
+| Tipo | Límite | Ventana |
+|------|:------:|:-------:|
+| Mensajes por usuario | 30 | 1 hora |
+| Tokens LLM por usuario | 50,000 | 1 día |
+
+Ver detalle completo: `infovoto-gateway/docs/technical/technical_document/13-rate-limiting.md`
 
 ### 5. Input Validation (api/chat/route.ts)
 
