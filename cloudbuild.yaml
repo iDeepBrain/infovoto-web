@@ -3,7 +3,7 @@ steps:
     args:
       - build
       - '-t'
-      - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$COMMIT_SHA'
+      - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$BUILD_ID'
       - '-t'
       - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:latest'
       - '--build-arg'
@@ -22,7 +22,7 @@ steps:
       - run
       - deploy
       - web
-      - '--image=us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$COMMIT_SHA'
+      - '--image=us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$BUILD_ID'
       - '--region=us-central1'
       - '--platform=managed'
 
