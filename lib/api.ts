@@ -7,7 +7,13 @@ import { createLogger } from "./logger";
 const log = createLogger("GatewayAPI");
 // Chat goes through Next.js API route (server-side proxy — API key never reaches browser)
 // Other endpoints (stats) still go direct for now
-const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
+// Server-side reads GATEWAY_URL at runtime (docker internal network: gateway:8080)
+// Client-side uses NEXT_PUBLIC_GATEWAY_URL (inlined at build time: localhost:2080)
+// Note: dynamic key access prevents Next.js webpack from inlining the value at build time
+const _env = process.env;
+function getGatewayUrl(): string {
+  return _env["GATEWAY_URL"] || _env["NEXT_PUBLIC_GATEWAY_URL"] || "http://localhost:2080";
+}
 const REQUEST_TIMEOUT_MS = 15000; // 15 seconds client-side timeout
 
 // Custom error types for proper error handling in UI
@@ -120,7 +126,7 @@ export interface DebateDetail extends DebateSummary {
 }
 
 export async function getDebates(): Promise<DebateSummary[]> {
-  const res = await fetch(`${GATEWAY_URL}/api/debates`, {
+  const res = await fetch(`${getGatewayUrl()}/api/debates`, {
     next: { revalidate: 3600 },
   });
   if (!res.ok) throw new GatewayError(res.status, "Failed to fetch debates");
@@ -128,7 +134,7 @@ export async function getDebates(): Promise<DebateSummary[]> {
 }
 
 export async function getDebate(id: string): Promise<DebateDetail> {
-  const res = await fetch(`${GATEWAY_URL}/api/debates/${id}`, {
+  const res = await fetch(`${getGatewayUrl()}/api/debates/${id}`, {
     next: { revalidate: 3600 },
   });
   if (!res.ok) throw new GatewayError(res.status, `Debate ${id} not found`);
@@ -214,7 +220,7 @@ export async function* sendMessageStream(
   try {
     // Stream also goes through proxy (TODO: create /api/chat/stream route)
     // For now, still direct — stream proxy is complex
-    const res = await fetch(`${GATEWAY_URL}/api/chat/stream`, {
+    const res = await fetch(`${getGatewayUrl()}/api/chat/stream`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

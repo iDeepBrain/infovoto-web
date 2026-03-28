@@ -12,6 +12,8 @@ import DebatesPreviewSection from "./components/DebatesPreviewSection";
 import TrustSection from "./components/TrustSection";
 import Footer from "./components/Footer";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#0a0f1a] relative">
