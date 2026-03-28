@@ -67,15 +67,15 @@ export default async function DebatesPage() {
 }
 
 function DebateCard({ debate, index }: { debate: DebateSummary; index: number }) {
+  const chatQuery = encodeURIComponent(
+    `Cuentame sobre el ${ORDINAL_LABELS[debate.numero]?.toLowerCase() || "debate"} presidencial 2026`
+  );
   return (
     <div
       className="animate-float-up transition-transform duration-300 hover:-translate-y-2"
       style={{ animationDelay: `${0.1 + index * 0.15}s` }}
     >
-      <Link
-        href={`/debates/${debate.id}`}
-        className="group block p-8 rounded-2xl border border-slate-700 hover:border-amber-500/50 bg-slate-800/50 hover:bg-slate-800 hover:shadow-xl transition-all h-full"
-      >
+      <div className="group p-8 rounded-2xl border border-slate-700 hover:border-amber-500/50 bg-slate-800/50 hover:bg-slate-800 hover:shadow-xl transition-all h-full">
         {/* Badge */}
         <div className="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold tracking-wider mb-4">
           {ORDINAL_LABELS[debate.numero] || `DEBATE ${debate.numero}`}
@@ -108,17 +108,23 @@ function DebateCard({ debate, index }: { debate: DebateSummary; index: number })
 
         {/* CTA */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <span className="flex-1 text-center py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
+          <Link
+            href={`/debates/${debate.id}`}
+            className="flex-1 text-center py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm hover:shadow-lg transition"
+          >
             Ver analisis
-          </span>
-          <span className="flex-1 text-center py-2.5 rounded-lg border border-slate-600 text-gray-300 font-semibold text-sm">
+          </Link>
+          <Link
+            href={`/chat?q=${chatQuery}`}
+            className="flex-1 text-center py-2.5 rounded-lg border border-slate-600 text-gray-300 hover:text-white hover:border-amber-500/50 font-semibold text-sm transition"
+          >
             Preguntarle a VOTI
-          </span>
+          </Link>
         </div>
 
         {/* Bottom accent */}
         <div className="mt-6 h-1 w-0 bg-gradient-to-r from-amber-400 to-orange-400 group-hover:w-full transition-all duration-300" />
-      </Link>
+      </div>
     </div>
   );
 }
