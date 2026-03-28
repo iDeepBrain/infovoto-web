@@ -20,6 +20,8 @@ const ORDINAL_LABELS: Record<number, string> = {
   3: "TERCER DEBATE",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function DebatesPage() {
   const debates = await getDebates();
 

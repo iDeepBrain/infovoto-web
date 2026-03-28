@@ -12,27 +12,35 @@ const ORDINAL_LABELS: Record<number, string> = {
 };
 
 export async function generateStaticParams() {
-  const debates = await getDebates();
-  return debates.map((d) => ({ id: d.id }));
+  try {
+    const debates = await getDebates();
+    return debates.map((d) => ({ id: d.id }));
+  } catch {
+    return []; // Gateway unavailable at build time — pages render on-demand
+  }
 }
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const debate = await getDebate(id);
-  return {
-    title: `${debate.titulo} | Voti`,
-    description: debate.highlight,
-    openGraph: {
+  try {
+    const { id } = await params;
+    const debate = await getDebate(id);
+    return {
       title: `${debate.titulo} | Voti`,
       description: debate.highlight,
-    },
-  };
+      openGraph: {
+        title: `${debate.titulo} | Voti`,
+        description: debate.highlight,
+      },
+    };
+  } catch {
+    return { title: "Debate Presidencial | Voti" };
+  }
 }
 
 export default async function DebateDetailPage({
