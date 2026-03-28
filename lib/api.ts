@@ -120,13 +120,17 @@ export interface DebateDetail extends DebateSummary {
 }
 
 export async function getDebates(): Promise<DebateSummary[]> {
-  const res = await fetch(`${GATEWAY_URL}/api/debates`);
+  const res = await fetch(`${GATEWAY_URL}/api/debates`, {
+    next: { revalidate: 3600 },
+  });
   if (!res.ok) throw new GatewayError(res.status, "Failed to fetch debates");
   return res.json();
 }
 
 export async function getDebate(id: string): Promise<DebateDetail> {
-  const res = await fetch(`${GATEWAY_URL}/api/debates/${id}`);
+  const res = await fetch(`${GATEWAY_URL}/api/debates/${id}`, {
+    next: { revalidate: 3600 },
+  });
   if (!res.ok) throw new GatewayError(res.status, `Debate ${id} not found`);
   return res.json();
 }

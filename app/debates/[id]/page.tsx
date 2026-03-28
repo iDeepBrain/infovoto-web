@@ -1,12 +1,9 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { notFound } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { getDebate, type DebateDetail } from "@/lib/api";
+import { getDebates, getDebate, type DebateDetail } from "@/lib/api";
+import type { Metadata } from "next";
 
 const ORDINAL_LABELS: Record<number, string> = {
   1: "Primer Debate",
@@ -14,39 +11,41 @@ const ORDINAL_LABELS: Record<number, string> = {
   3: "Tercer Debate",
 };
 
-export default function DebateDetailPage() {
-  const params = useParams();
-  const debateId = params.id as string;
-  const [debate, setDebate] = useState<DebateDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+export async function generateStaticParams() {
+  const debates = await getDebates();
+  return debates.map((d) => ({ id: d.id }));
+}
 
-  useEffect(() => {
-    if (!debateId) return;
-    getDebate(debateId)
-      .then(setDebate)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [debateId]);
+export const dynamicParams = false;
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-      </main>
-    );
-  }
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const debate = await getDebate(id);
+  return {
+    title: `${debate.titulo} | Voti`,
+    description: debate.highlight,
+    openGraph: {
+      title: `${debate.titulo} | Voti`,
+      description: debate.highlight,
+    },
+  };
+}
 
-  if (!debate) {
-    return (
-      <main className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-400 text-xl mb-4">Debate no encontrado</p>
-          <Link href="/debates" className="text-amber-400 hover:underline">
-            Volver a debates
-          </Link>
-        </div>
-      </main>
-    );
+export default async function DebateDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  let debate: DebateDetail;
+  try {
+    debate = await getDebate(id);
+  } catch {
+    notFound();
   }
 
   return (
@@ -77,12 +76,7 @@ export default function DebateDetailPage() {
             </Link>
 
             {/* Hero */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="mb-12"
-            >
+            <div className="mb-12 animate-float-up">
               <div className="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold tracking-wider mb-4">
                 {ORDINAL_LABELS[debate.numero] || `Debate ${debate.numero}`}
               </div>
@@ -114,15 +108,10 @@ export default function DebateDetailPage() {
                   Ver debate en YouTube
                 </a>
               )}
-            </motion.div>
+            </div>
 
             {/* Candidatos grid */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="mb-12"
-            >
+            <section className="mb-12 animate-float-up [animation-delay:0.1s]">
               <h2 className="text-xl font-bold text-white mb-4">Candidatos participantes</h2>
               <div className="flex flex-wrap gap-2">
                 {debate.candidatos.map((c) => (
@@ -136,16 +125,11 @@ export default function DebateDetailPage() {
                   </Link>
                 ))}
               </div>
-            </motion.section>
+            </section>
 
             {/* Puntos Clave */}
             {debate.puntos_clave.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="mb-12"
-              >
+              <section className="mb-12 animate-float-up [animation-delay:0.2s]">
                 <div className="flex items-center gap-3 mb-6">
                   <h2 className="text-xl font-bold text-white">Puntos Clave del Debate</h2>
                   <span className="px-2 py-0.5 rounded text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">
@@ -176,17 +160,12 @@ export default function DebateDetailPage() {
                     </div>
                   ))}
                 </div>
-              </motion.section>
+              </section>
             )}
 
             {/* Analisis Completo */}
             {debate.analisis_completo && (
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mb-12"
-              >
+              <section className="mb-12 animate-float-up [animation-delay:0.3s]">
                 <div className="flex items-center gap-3 mb-6">
                   <h2 className="text-xl font-bold text-white">Analisis Completo</h2>
                   <span className="px-2 py-0.5 rounded text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">
@@ -201,11 +180,11 @@ export default function DebateDetailPage() {
                     Son declaraciones de los candidatos, no compromisos vinculantes. No constituye postura editorial.
                   </div>
 
-                  <div className="prose prose-invert prose-sm max-w-none prose-headings:text-white prose-headings:font-bold prose-p:text-gray-300 prose-strong:text-white prose-li:text-gray-300 prose-a:text-amber-400">
+                  <div className="prose prose-invert prose-sm max-w-none prose-headings:font-bold prose-a:text-amber-400 text-gray-300">
                     <MarkdownRenderer content={debate.analisis_completo} />
                   </div>
                 </div>
-              </motion.section>
+              </section>
             )}
 
             {/* Sticky CTA */}
@@ -230,22 +209,22 @@ export default function DebateDetailPage() {
 function MarkdownRenderer({ content }: { content: string }) {
   const html = content
     // Headers
-    .replace(/^### (.+)$/gm, '<h3 class="text-lg mt-6 mb-2">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-xl mt-8 mb-3">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-2xl mt-8 mb-4">$1</h1>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg mt-6 mb-2 text-white">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl mt-8 mb-3 text-white">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl mt-8 mb-4 text-white">$1</h1>')
     // Bold & italic
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
     // Unordered lists
-    .replace(/^[-*] (.+)$/gm, '<li class="ml-4">$1</li>')
+    .replace(/^[-*] (.+)$/gm, '<li class="ml-4 text-gray-300">$1</li>')
     // Paragraphs (double newline)
-    .replace(/\n\n/g, '</p><p class="mb-3">')
+    .replace(/\n\n/g, '</p><p class="mb-3 text-gray-300">')
     // Single newlines
     .replace(/\n/g, "<br/>");
 
   return (
     <div
-      dangerouslySetInnerHTML={{ __html: `<p class="mb-3">${html}</p>` }}
+      dangerouslySetInnerHTML={{ __html: `<p class="mb-3 text-gray-300">${html}</p>` }}
     />
   );
 }
