@@ -31,11 +31,11 @@ export default function Navbar() {
             <Link href="/" className="text-gray-300 hover:text-white transition font-medium text-sm">
               Inicio
             </Link>
-            <Link href="/debates" className="text-gray-300 hover:text-amber-400 transition font-medium text-sm">
-              Debates
-            </Link>
             <Link href="/#features" className="text-gray-300 hover:text-white transition font-medium text-sm">
               Características
+            </Link>
+            <Link href="/debates" className="text-gray-300 hover:text-amber-400 transition font-medium text-sm">
+              Debates
             </Link>
             <a href="https://www.jne.gob.pe" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition font-medium text-sm">
               JNE Oficial
@@ -95,11 +95,11 @@ export default function Navbar() {
             <Link href="/" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
               Inicio
             </Link>
-            <Link href="/debates" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
-              Debates
-            </Link>
             <Link href="/#features" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
               Características
+            </Link>
+            <Link href="/debates" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
+              Debates
             </Link>
             <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener noreferrer" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
               ONPE
