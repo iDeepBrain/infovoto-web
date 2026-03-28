@@ -1,0 +1,46 @@
+steps:
+  # ── Step 1: Build Docker image ────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    args:
+      - build
+      - '-t'
+      - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web-dev:$BUILD_ID'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web-dev:latest'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_GATEWAY_URL=https://gateway-dev-630531001367.us-central1.run.app'
+      - '.'
+
+  # ── Step 2: Push imagen a Artifact Registry ───────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push'
+    args:
+      - push
+      - '--all-tags'
+      - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web-dev'
+    waitFor: ['build']
+
+  # ── Step 3: Deploy a Cloud Run web-dev ────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - web-dev
+      - '--image=us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web-dev:$BUILD_ID'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--min-instances=0'
+      - '--max-instances=2'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=ADMIN_EMAIL=cristian2023ml@gmail.com,NEXTAUTH_URL=https://web-dev-630531001367.us-central1.run.app,GATEWAY_URL=https://gateway-dev-630531001367.us-central1.run.app,HOSTNAME=0.0.0.0'
+      - '--set-secrets=GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest'
+    waitFor: ['push']
+
+images:
+  - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web-dev'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
