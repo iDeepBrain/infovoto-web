@@ -86,6 +86,51 @@ export function isTokenExpired(token: string): boolean {
   }
 }
 
+// ── Debates Content API (public, no auth) ──
+
+export interface DebateSummary {
+  id: string;
+  numero: number;
+  titulo: string;
+  fecha: string;
+  lugar: string;
+  candidatos_count: number;
+  temas: string[];
+  highlight: string;
+}
+
+export interface CandidatoRef {
+  nombre: string;
+  partido: string;
+  slug: string;
+}
+
+export interface PuntoClave {
+  numero: number;
+  titulo: string;
+  texto: string;
+}
+
+export interface DebateDetail extends DebateSummary {
+  youtube_url: string;
+  candidatos: CandidatoRef[];
+  puntos_clave: PuntoClave[];
+  analisis_titulo: string;
+  analisis_completo: string;
+}
+
+export async function getDebates(): Promise<DebateSummary[]> {
+  const res = await fetch(`${GATEWAY_URL}/api/debates`);
+  if (!res.ok) throw new GatewayError(res.status, "Failed to fetch debates");
+  return res.json();
+}
+
+export async function getDebate(id: string): Promise<DebateDetail> {
+  const res = await fetch(`${GATEWAY_URL}/api/debates/${id}`);
+  if (!res.ok) throw new GatewayError(res.status, `Debate ${id} not found`);
+  return res.json();
+}
+
 export async function sendMessage(
   message: string,
   idToken: string
