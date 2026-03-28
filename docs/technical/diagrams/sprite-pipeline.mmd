@@ -11,7 +11,7 @@ flowchart LR
 
     JSON --> COMP[VotiSprite.tsx]
     PNG --> COMP
-    COMP --> RENDER[Browser: CSS background-image<br/>+ translateX por frame]
+    COMP --> RENDER[Browser: canvas drawImage<br/>+ frame cycling por duration]
 
     style GEN fill:#8b5cf6,color:#fff
     style REMBG fill:#3b82f6,color:#fff

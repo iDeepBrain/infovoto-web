@@ -6,33 +6,33 @@ sequenceDiagram
     participant GW as Gateway
     participant DB as PostgreSQL
 
-    U->>B: Clic "Iniciar con Google"
+    U->>B: Clic "Continuar con Google"
     B->>N: signIn("google")
     N->>G: Redirect a consent screen
     G-->>U: Pantalla de permisos
     U->>G: Autoriza
     G-->>N: id_token + access_token + refresh_token
 
-    Note over N: JWT Callback
+    Note over N: JWT Callback (server-side)
     N->>GW: POST /auth/verify {id_token}
-    GW->>G: Valida token con Google
+    GW->>G: Valida id_token con Google
     G-->>GW: OK (sub, email)
-    GW->>DB: Registrar usuario
+    GW->>DB: Upsert usuario (user_id = Google sub)
     GW-->>N: {user_id: "google_sub_123"}
 
     Note over N: Session Callback
     N->>N: session.user_id = user_id
     N->>N: session.emailHash = SHA256(email)
-    N->>N: session.isAdmin = (email === admin)
-    N-->>B: Set-Cookie: next-auth.session-token
+    N->>N: session.isAdmin = (email === ADMIN_EMAIL)
+    N-->>B: Set-Cookie: next-auth.session-token (300s)
 
     B-->>U: Redirect a /chat
 
-    Note over U,B: Enviar mensaje
-    U->>B: Escribe pregunta
+    Note over U,B: Enviar mensaje al chat
+    U->>B: Escribe pregunta y envía
     B->>B: POST /api/chat {message}
-    Note over B: Server-side proxy
-    B->>B: getServerSession() → id_token
-    B->>GW: POST /api/chat {message}<br/>Authorization: Bearer id_token<br/>X-API-Key: gk_web_...
+    Note over B: Next.js server proxy
+    B->>B: getServerSession() → extrae id_token
+    B->>GW: POST /api/chat {message}<br/>Authorization: Bearer id_token<br/>X-API-Key: gk_web_...<br/>X-Real-IP: client_ip
     GW-->>B: {reply, sources, warnings}
-    B-->>U: Muestra respuesta con Voti avatar
+    B-->>U: Muestra respuesta con Voti

@@ -1,0 +1,61 @@
+flowchart TD
+    U[Usuario escribe mensaje] --> FE
+
+    subgraph FE[Browser — Capa 1]
+        F1[maxLength: 1000 chars]
+        F2[isTokenExpired check]
+        F3[Token exp validado antes de enviar]
+    end
+
+    FE --> |POST /api/chat| PROXY
+
+    subgraph PROXY[Next.js Server Proxy — Capas 2-5]
+        P1[2. NextAuth session check]
+        P2[3. Input validation: tipo + largo]
+        P3[4. Prompt injection: 16 patterns regex]
+        P4[5. X-API-Key injection server-side]
+        P5[6. Timeout: 20s AbortSignal]
+
+        P1 --> |No session| R401[401 Not authenticated]
+        P1 --> |OK| P2
+        P2 --> |Invalid| R400[400 Bad request]
+        P2 --> |OK| P3
+        P3 --> |Detected| RBLOCK[200 Solo info electoral<br/>0 tokens gastados]
+        P3 --> |Clean| P4
+        P4 --> P5
+    end
+
+    P5 --> |Authorization: Bearer + X-API-Key| GW
+
+    subgraph GW[Gateway — Capas 6-8]
+        G1[6. Valida X-API-Key]
+        G2[7. Valida Bearer id_token con Google]
+        G3[8. Rate limit: IP + user 30/hr + tokens 50k/día]
+        G4[9. Agent Gemini + MCPs]
+        G5[10. Output filter + sanitización]
+
+        G1 --> |Invalid key| G403[403 Forbidden]
+        G1 --> |OK| G2
+        G2 --> |Invalid token| G401[401 Unauthorized]
+        G2 --> |OK| G3
+        G3 --> |Exceeded| G429[429 Rate limit exceeded<br/>Retry-After header]
+        G3 --> |OK| G4
+        G4 --> G5
+    end
+
+    subgraph HEADERS[Security Headers — next.config.mjs]
+        H1[CSP: script-src self]
+        H2[X-Frame-Options: DENY]
+        H3[X-Content-Type-Options: nosniff]
+        H4[CORS: solo NEXTAUTH_URL]
+        H5[Permissions-Policy: sin cámara/mic]
+    end
+
+    style R401 fill:#ef4444,color:#fff
+    style G401 fill:#ef4444,color:#fff
+    style G403 fill:#ef4444,color:#fff
+    style R400 fill:#ef4444,color:#fff
+    style G429 fill:#f59e0b,color:#000
+    style RBLOCK fill:#22c55e,color:#fff
+    style PROXY fill:#1e293b,color:#fff
+    style GW fill:#111827,color:#fff
