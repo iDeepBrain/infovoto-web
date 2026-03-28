@@ -8,6 +8,7 @@ import HeroSection from "./components/HeroSection";
 import DemoSection from "./components/DemoSection";
 import VotiStorySection from "./components/VotiStorySection";
 import FeaturesGrid from "./components/FeaturesGrid";
+import DebatesPreviewSection from "./components/DebatesPreviewSection";
 import TrustSection from "./components/TrustSection";
 import Footer from "./components/Footer";
 
@@ -29,6 +30,7 @@ export default function Home() {
       <HeroSection />
       <VotiStorySection />
       <DemoSection />
+      <DebatesPreviewSection />
       <FeaturesGrid />
       <TrustSection />
       <Footer />
