@@ -9,10 +9,12 @@ const log = createLogger("GatewayAPI");
 // Other endpoints (stats) still go direct for now
 // Server-side reads GATEWAY_URL at runtime (docker internal network: gateway:8080)
 // Client-side uses NEXT_PUBLIC_GATEWAY_URL (inlined at build time: localhost:2080)
-// Note: dynamic key access prevents Next.js webpack from inlining the value at build time
-const _env = process.env;
 function getGatewayUrl(): string {
-  return _env["GATEWAY_URL"] || _env["NEXT_PUBLIC_GATEWAY_URL"] || "http://localhost:2080";
+  if (typeof window === "undefined") {
+    // Server: dynamic access prevents webpack from inlining at build time
+    return process.env["GATEWAY_URL"] || process.env["NEXT_PUBLIC_GATEWAY_URL"] || "http://localhost:2080";
+  }
+  return process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
 }
 const REQUEST_TIMEOUT_MS = 15000; // 15 seconds client-side timeout
 
