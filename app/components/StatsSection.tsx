@@ -84,7 +84,7 @@ export default function StatsSection() {
             ¿Listo para tomar una decisión informada?
           </p>
           <a
-            href="/login"
+            href="/chat"
             className="inline-block px-8 py-4 bg-gradient-to-r from-red-600 to-blue-600 text-white rounded-lg font-semibold text-lg hover:shadow-2xl hover:scale-105 transition transform"
           >
             Comienza Ahora

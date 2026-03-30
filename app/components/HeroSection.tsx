@@ -83,10 +83,10 @@ export default function HeroSection() {
                 </span>
               </Link>
               <Link
-                href="/login"
+                href="/chat"
                 className="px-8 py-4 border border-white/15 text-gray-300 rounded-xl font-semibold text-lg hover:bg-white/5 transition backdrop-blur-sm"
               >
-                Iniciar con Google
+                Preguntarle a Voti
               </Link>
             </div>
 
