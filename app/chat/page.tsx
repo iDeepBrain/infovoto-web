@@ -1,12 +1,10 @@
 /**
- * Chat page — protected, requires Google login.
+ * Chat page — open to everyone, no login required.
  * Dark theme with Voti avatar and pixel art background.
  */
 
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import VotiSprite from "@/app/components/VotiSprite";
 import { useEffect, useRef, useState } from "react";
 import { createLogger } from "@/lib/logger";
@@ -15,10 +13,8 @@ import {
   type ChatResponse,
   type SourceMetadata,
   type Warning,
-  AuthError,
   RateLimitError,
   TimeoutError,
-  isTokenExpired,
 } from "@/lib/api";
 
 const log = createLogger("ChatPage");
@@ -29,7 +25,7 @@ interface Message {
   sources?: SourceMetadata[];
   warnings?: Warning[];
   isError?: boolean;
-  errorType?: "auth" | "rate_limit" | "timeout" | "server" | "network";
+  errorType?: "rate_limit" | "timeout" | "server" | "network";
 }
 
 const PREGUNTAS_SUGERIDAS = [
@@ -123,7 +119,6 @@ function formatInline(text: string): React.ReactNode {
 
 /** Voti avatar next to assistant messages */
 function VotiAvatar({ size = 40, sprite = "voti_idle_half_blink" }: { size?: number; sprite?: string }) {
-  // Sprite is portrait (470×625, ratio 0.752). Scale by height to fit in circle.
   const spriteWidth = Math.round(size * 0.75);
   return (
     <div
@@ -136,8 +131,6 @@ function VotiAvatar({ size = 40, sprite = "voti_idle_half_blink" }: { size?: num
 }
 
 export default function ChatPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -153,8 +146,6 @@ export default function ChatPage() {
     }
   }, []);
 
-  const isAuthenticated = status === "authenticated" && !!(session as any)?.id_token;
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -165,7 +156,6 @@ export default function ChatPage() {
     const q = params.get("q");
     if (q && messages.length === 0) {
       setInput(q);
-      // Auto-focus the input
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [messages.length]);
@@ -174,24 +164,15 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || loading || !isAuthenticated) return;
+    if (!text || loading) return;
     if (text.length > MAX_MESSAGE_LENGTH) return;
-
-    const idToken = (session as any)?.id_token;
-    if (!idToken || isTokenExpired(idToken)) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Tu sesión expiró. Por favor inicia sesión de nuevo.", isError: true, errorType: "auth" },
-      ]);
-      return;
-    }
 
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setLoading(true);
 
     try {
-      const data: ChatResponse = await sendMessage(text, idToken);
+      const data: ChatResponse = await sendMessage(text);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: data.reply, sources: data.sources, warnings: data.warnings },
@@ -200,11 +181,7 @@ export default function ChatPage() {
       let errorMessage = "Lo siento, hubo un error. Por favor intenta de nuevo.";
       let errorType: Message["errorType"] = "server";
 
-      if (e instanceof AuthError) {
-        errorMessage = "Tu sesión expiró. Por favor inicia sesión de nuevo.";
-        errorType = "auth";
-        setTimeout(() => { signOut({ redirect: false }); router.push("/login"); }, 2000);
-      } else if (e instanceof RateLimitError) {
+      if (e instanceof RateLimitError) {
         errorMessage = "Alcanzaste el límite de consultas. Por favor intenta más tarde.";
         errorType = "rate_limit";
       } else if (e instanceof TimeoutError) {
@@ -220,14 +197,6 @@ export default function ChatPage() {
       setLoading(false);
     }
   };
-
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0f1a]">
-        <div className="text-gray-400">Cargando...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-screen bg-[#0a0f1a] relative">
@@ -252,31 +221,6 @@ export default function ChatPage() {
             <span className="text-xs text-gray-400">En línea — Datos del JNE y ONPE</span>
           </div>
         </div>
-        {isAuthenticated ? (
-          <div className="flex items-center gap-2">
-            {(session as any)?.user?.email === "cristian2023ml@gmail.com" && (
-              <a
-                href="/stats"
-                className="px-3 py-1.5 text-xs text-amber-400 hover:text-amber-300 transition"
-              >
-                Dashboard
-              </a>
-            )}
-            <button
-              onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
-              className="px-3 py-1.5 text-xs bg-[#1e293b] hover:bg-[#334155] text-gray-300 rounded-lg border border-[#334155] transition"
-            >
-              Salir
-            </button>
-          </div>
-        ) : (
-          <a
-            href="/login"
-            className="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-[#0a0f1a] font-bold rounded-lg transition"
-          >
-            Iniciar sesión
-          </a>
-        )}
       </header>
 
       {/* Consent banner */}
@@ -446,48 +390,37 @@ export default function ChatPage() {
         <a href="https://votoinformado.jne.gob.pe/home" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Voto Informado</a>
       </div>
 
-      {/* Input bar */}
+      {/* Input bar — always visible, no login required */}
       <div className="relative z-10 flex gap-3 px-4 md:px-8 lg:px-32 py-4 bg-[#111827] border-t border-[#1e293b]">
-        {isAuthenticated ? (
-          <>
-            <div className="flex-1 relative">
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_LENGTH))}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="Escribe tu pregunta..."
-                className={`w-full bg-[#0a0f1a] border rounded-full px-5 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition ${
-                  input.length >= MAX_MESSAGE_LENGTH ? "border-red-500" : "border-[#1e293b] focus:border-amber-500/50"
-                }`}
-                disabled={loading}
-                maxLength={MAX_MESSAGE_LENGTH}
-              />
-              {input.length > MAX_MESSAGE_LENGTH * 0.8 && (
-                <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] ${
-                  input.length >= MAX_MESSAGE_LENGTH ? "text-red-400" : "text-gray-500"
-                }`}>
-                  {input.length}/{MAX_MESSAGE_LENGTH}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={handleSend}
-              disabled={loading || !input.trim() || input.length > MAX_MESSAGE_LENGTH}
-              className="w-12 h-12 bg-amber-500 text-[#0a0f1a] rounded-full flex items-center justify-center hover:bg-amber-400 disabled:opacity-40 transition text-lg font-bold shrink-0"
-            >
-              →
-            </button>
-          </>
-        ) : (
-          <a
-            href="/login"
-            className="flex-1 bg-amber-500 text-[#0a0f1a] font-bold py-3 rounded-full hover:bg-amber-400 transition text-sm text-center"
-          >
-            Inicia sesión para preguntar
-          </a>
-        )}
+        <div className="flex-1 relative">
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_LENGTH))}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            placeholder="Escribe tu pregunta..."
+            className={`w-full bg-[#0a0f1a] border rounded-full px-5 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition ${
+              input.length >= MAX_MESSAGE_LENGTH ? "border-red-500" : "border-[#1e293b] focus:border-amber-500/50"
+            }`}
+            disabled={loading}
+            maxLength={MAX_MESSAGE_LENGTH}
+          />
+          {input.length > MAX_MESSAGE_LENGTH * 0.8 && (
+            <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] ${
+              input.length >= MAX_MESSAGE_LENGTH ? "text-red-400" : "text-gray-500"
+            }`}>
+              {input.length}/{MAX_MESSAGE_LENGTH}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={handleSend}
+          disabled={loading || !input.trim() || input.length > MAX_MESSAGE_LENGTH}
+          className="w-12 h-12 bg-amber-500 text-[#0a0f1a] rounded-full flex items-center justify-center hover:bg-amber-400 disabled:opacity-40 transition text-lg font-bold shrink-0"
+        >
+          →
+        </button>
       </div>
     </div>
   );

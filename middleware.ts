@@ -1,18 +1,27 @@
 /**
- * Next.js middleware — protects /chat/* routes.
- * Unauthenticated users can view /chat but can't send messages
- * (the UI shows a login button instead of input).
+ * Next.js middleware — assigns anonymous session UUID cookie on first visit.
+ * The cookie is used as X-Session-ID for gateway rate limiting and analytics.
  */
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  // Allow /chat to be viewable without auth (shows login button)
-  // The API proxy /api/chat enforces auth server-side
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  if (!request.cookies.get("voti_session")) {
+    response.cookies.set("voti_session", crypto.randomUUID(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      path: "/",
+    });
+  }
+
+  return response;
 }
 
 export const config = {
-  matcher: ["/chat/:path*"],
+  matcher: ["/chat/:path*", "/api/chat"],
 };

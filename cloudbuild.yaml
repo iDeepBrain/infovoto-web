@@ -1,5 +1,18 @@
 steps:
+  # ── Step 0: Descargar sprites desde GCS (Git LFS no funciona en Cloud Build) ──
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'download-sprites'
+    timeout: '60s'
+    args:
+      - '-m'
+      - cp
+      - '-r'
+      - 'gs://proyectosia-423918_cloudbuild/assets/sprites/*.png'
+      - 'public/sprites/'
+
+  # ── Step 1: Build Docker image ──
   - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
     args:
       - build
       - '-t'
@@ -9,14 +22,20 @@ steps:
       - '--build-arg'
       - 'NEXT_PUBLIC_GATEWAY_URL=https://gateway-630531001367.us-central1.run.app'
       - '.'
+    waitFor: ['download-sprites']
 
+  # ── Step 2: Push imagen a Artifact Registry ──
   - name: 'gcr.io/cloud-builders/docker'
+    id: 'push'
     args:
       - push
       - '--all-tags'
       - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web'
+    waitFor: ['build']
 
+  # ── Step 3: Deploy a Cloud Run web ──
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
     entrypoint: gcloud
     args:
       - run
@@ -25,6 +44,7 @@ steps:
       - '--image=us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$BUILD_ID'
       - '--region=us-central1'
       - '--platform=managed'
+    waitFor: ['push']
 
 images:
   - 'us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web'

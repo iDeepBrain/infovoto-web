@@ -144,16 +144,9 @@ export async function getDebate(id: string): Promise<DebateDetail> {
 }
 
 export async function sendMessage(
-  message: string,
-  idToken: string
+  message: string
 ): Promise<ChatResponse> {
   log.info("sendMessage called", { messageLen: message.length });
-
-  // Check if token is expired before sending
-  if (isTokenExpired(idToken)) {
-    log.warn("Token is expired");
-    throw new AuthError("Session expired — please log in again");
-  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -206,27 +199,20 @@ export async function sendMessage(
 
 /**
  * SSE streaming client — sends message and yields events progressively.
+ * TODO: route through /api/chat/stream proxy (like sendMessage uses /api/chat)
  */
 export async function* sendMessageStream(
-  message: string,
-  idToken: string
+  message: string
 ): AsyncGenerator<{ type: string; content?: string; data?: any }> {
-  // Check if token is expired before sending
-  if (isTokenExpired(idToken)) {
-    throw new AuthError("Session expired — please log in again");
-  }
-
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    // Stream also goes through proxy (TODO: create /api/chat/stream route)
-    // For now, still direct — stream proxy is complex
+    // TODO: create /api/chat/stream proxy route (currently direct — no auth)
     const res = await fetch(`${getGatewayUrl()}/api/chat/stream`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({ message }),
       signal: controller.signal,

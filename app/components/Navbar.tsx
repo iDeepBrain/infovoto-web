@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 
 export default function Navbar() {
-  const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -48,30 +46,11 @@ export default function Navbar() {
             </a>
           </div>
 
-          {/* Auth Button */}
-          <div className="hidden md:flex items-center gap-4">
-            {session ? (
-              <div className="flex items-center gap-3">
-                <Link href="/chat" className="px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-lg font-semibold hover:shadow-lg transition">
-                  Consultar
-                </Link>
-                {(session as any)?.user?.email === "cristian2023ml@gmail.com" && (
-                  <Link href="/stats" className="px-3 py-2 text-gray-400 hover:text-amber-400 transition text-sm">
-                    Dashboard
-                  </Link>
-                )}
-                <button
-                  onClick={() => signOut()}
-                  className="px-4 py-2 text-gray-300 hover:text-white transition"
-                >
-                  Salir
-                </button>
-              </div>
-            ) : (
-              <Link href="/login" className="px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-lg font-semibold hover:shadow-lg transition">
-                Iniciar Sesión
-              </Link>
-            )}
+          {/* CTA */}
+          <div className="hidden md:flex items-center">
+            <Link href="/chat" className="px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-lg font-semibold hover:shadow-lg transition">
+              Preguntarle a Voti
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -107,23 +86,9 @@ export default function Navbar() {
             <a href="https://votoinformado.jne.gob.pe/home" target="_blank" rel="noopener noreferrer" className="block px-4 py-2 text-gray-300 hover:bg-slate-800 rounded">
               Voto Informado
             </a>
-            {session ? (
-              <>
-                <Link href="/chat" className="block px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded font-semibold">
-                  Consultar
-                </Link>
-                <button
-                  onClick={() => signOut()}
-                  className="block w-full text-left px-4 py-2 text-gray-300 hover:bg-slate-800 rounded"
-                >
-                  Salir
-                </button>
-              </>
-            ) : (
-              <Link href="/login" className="block px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded font-semibold">
-                Iniciar Sesión
-              </Link>
-            )}
+            <Link href="/chat" className="block px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded font-semibold">
+              Preguntarle a Voti
+            </Link>
           </motion.div>
         )}
       </div>
