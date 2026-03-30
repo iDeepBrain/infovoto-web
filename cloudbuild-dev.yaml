@@ -48,7 +48,7 @@ steps:
       - '--max-instances=2'
       - '--allow-unauthenticated'
       - '--set-env-vars=ADMIN_EMAIL=cristian2023ml@gmail.com,NEXTAUTH_URL=https://web-dev-630531001367.us-central1.run.app,GATEWAY_URL=https://gateway-dev-630531001367.us-central1.run.app,HOSTNAME=0.0.0.0'
-      - '--set-secrets=GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest'
+      - '--set-secrets=GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest,GATEWAY_API_KEY_WEB=API_KEY_WEB:latest'
     waitFor: ['push']
 
 images:

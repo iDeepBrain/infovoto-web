@@ -44,6 +44,7 @@ steps:
       - '--image=us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$BUILD_ID'
       - '--region=us-central1'
       - '--platform=managed'
+      - '--set-secrets=GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest,GATEWAY_API_KEY_WEB=API_KEY_WEB:latest'
     waitFor: ['push']
 
 images:
