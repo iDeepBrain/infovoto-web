@@ -223,16 +223,31 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* Consent banner */}
+      {/* Consent modal — blocks chat until accepted */}
       {!consentDismissed && (
-        <div className="relative z-10 flex items-center justify-between px-4 md:px-8 lg:px-32 py-2 bg-[#1e293b] border-b border-[#334155] text-xs text-gray-400">
-          <span>Tus consultas se almacenan de forma anónima para mejorar el servicio.</span>
-          <button
-            onClick={() => { setConsentDismissed(true); localStorage.setItem("voti_consent", "1"); }}
-            className="ml-3 text-gray-500 hover:text-white shrink-0"
-          >
-            ✕
-          </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-[#111827] border border-[#1e293b] rounded-2xl p-6 max-w-sm w-full text-center space-y-4">
+            <div className="flex justify-center">
+              <VotiSprite sprite="voti_idle_half_blink" width={64} />
+            </div>
+            <h2 className="text-white font-bold text-lg">Antes de comenzar</h2>
+            <div className="text-sm text-gray-400 space-y-2 text-left">
+              <p>Tu sesión se identifica con un hash anónimo. No guardamos datos personales.</p>
+              <p>Tus consultas se almacenan para mejorar el servicio.</p>
+            </div>
+            <p className="text-xs text-gray-500">
+              Al continuar aceptas los{" "}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-amber-400 underline hover:text-amber-300">Términos y Condiciones</a>
+              {" "}y la{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-400 underline hover:text-amber-300">Política de Privacidad</a>.
+            </p>
+            <button
+              onClick={() => { setConsentDismissed(true); localStorage.setItem("voti_consent", "1"); }}
+              className="w-full bg-amber-500 hover:bg-amber-400 text-[#0a0f1a] font-bold py-3 rounded-xl transition"
+            >
+              Acepto y continuar
+            </button>
+          </div>
         </div>
       )}
 
@@ -403,7 +418,7 @@ export default function ChatPage() {
             className={`w-full bg-[#0a0f1a] border rounded-full px-5 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition ${
               input.length >= MAX_MESSAGE_LENGTH ? "border-red-500" : "border-[#1e293b] focus:border-amber-500/50"
             }`}
-            disabled={loading}
+            disabled={loading || !consentDismissed}
             maxLength={MAX_MESSAGE_LENGTH}
           />
           {input.length > MAX_MESSAGE_LENGTH * 0.8 && (
@@ -416,7 +431,7 @@ export default function ChatPage() {
         </div>
         <button
           onClick={handleSend}
-          disabled={loading || !input.trim() || input.length > MAX_MESSAGE_LENGTH}
+          disabled={loading || !consentDismissed || !input.trim() || input.length > MAX_MESSAGE_LENGTH}
           className="w-12 h-12 bg-amber-500 text-[#0a0f1a] rounded-full flex items-center justify-center hover:bg-amber-400 disabled:opacity-40 transition text-lg font-bold shrink-0"
         >
           →
