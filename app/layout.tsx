@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SessionProvider } from "./session-provider";
 import { GoogleAnalytics } from "./analytics";
 
 export const metadata: Metadata = {
@@ -17,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GoogleAnalytics />
       </head>
       <body className="bg-[#0a0f1a]">
-        <SessionProvider>{children}</SessionProvider>
+        {children}
       </body>
     </html>
   );
