@@ -10,12 +10,14 @@ import { useEffect, useRef, useState } from "react";
 import { createLogger } from "@/lib/logger";
 import {
   sendMessage,
+  type CandidateCard as CandidateCardType,
   type ChatResponse,
   type SourceMetadata,
   type Warning,
   RateLimitError,
   TimeoutError,
 } from "@/lib/api";
+import CandidateCard from "@/app/components/CandidateCard";
 
 const log = createLogger("ChatPage");
 
@@ -24,6 +26,7 @@ interface Message {
   content: string;
   sources?: SourceMetadata[];
   warnings?: Warning[];
+  candidates?: CandidateCardType[];
   isError?: boolean;
   errorType?: "rate_limit" | "timeout" | "server" | "network";
 }
@@ -175,7 +178,7 @@ export default function ChatPage() {
       const data: ChatResponse = await sendMessage(text);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.reply, sources: data.sources, warnings: data.warnings },
+        { role: "assistant", content: data.reply, sources: data.sources, warnings: data.warnings, candidates: data.candidates },
       ]);
     } catch (e) {
       let errorMessage = "Lo siento, hubo un error. Por favor intenta de nuevo.";
@@ -318,6 +321,15 @@ export default function ChatPage() {
                     <div key={j} className="text-xs bg-amber-900/30 text-amber-300 px-2 py-1 rounded">
                       {w.message}
                     </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Candidate Cards */}
+              {msg.candidates && msg.candidates.length > 0 && (
+                <div className="mb-2">
+                  {msg.candidates.map((card, ci) => (
+                    <CandidateCard key={ci} {...card} />
                   ))}
                 </div>
               )}

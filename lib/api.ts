@@ -61,10 +61,19 @@ export interface Warning {
   message: string;
 }
 
+export interface CandidateCard {
+  nombre: string;
+  partido: string;
+  cargo: string;
+  foto_url?: string;
+  dni?: string;
+}
+
 export interface ChatResponse {
   reply: string;
   sources?: SourceMetadata[];
   warnings?: Warning[];
+  candidates?: CandidateCard[];
   session_id?: string;
   cached?: boolean;
 }
