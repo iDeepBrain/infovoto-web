@@ -66,6 +66,7 @@ export interface CandidateCard {
   partido: string;
   cargo: string;
   foto_url?: string;
+  logo_url?: string;
   dni?: string;
 }
 
