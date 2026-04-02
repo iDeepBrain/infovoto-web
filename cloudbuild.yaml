@@ -44,6 +44,10 @@ steps:
       - '--image=us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web:$BUILD_ID'
       - '--region=us-central1'
       - '--platform=managed'
+      - '--memory=512Mi'
+      - '--min-instances=1'
+      - '--max-instances=5'
+      - '--set-env-vars=ADMIN_EMAIL=cristian2023ml@gmail.com,NEXTAUTH_URL=https://voti.pe,GATEWAY_URL=https://gateway-630531001367.us-central1.run.app,HOSTNAME=0.0.0.0'
       - '--set-secrets=GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest,GATEWAY_API_KEY_WEB=API_KEY_WEB:latest'
     waitFor: ['push']
 
