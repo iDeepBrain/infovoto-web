@@ -44,6 +44,7 @@ steps:
       - '--image=us-central1-docker.pkg.dev/proyectosia-423918/cloud-run-source-deploy/web-dev:$BUILD_ID'
       - '--region=us-central1'
       - '--platform=managed'
+      - '--memory=512Mi'
       - '--min-instances=0'
       - '--max-instances=2'
       - '--allow-unauthenticated'
