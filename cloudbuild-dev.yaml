@@ -45,7 +45,7 @@ steps:
       - '--region=us-central1'
       - '--platform=managed'
       - '--memory=512Mi'
-      - '--min-instances=0'
+      - '--min-instances=1'
       - '--max-instances=2'
       - '--allow-unauthenticated'
       - '--set-env-vars=ADMIN_EMAIL=cristian2023ml@gmail.com,NEXTAUTH_URL=https://web-dev-630531001367.us-central1.run.app,GATEWAY_URL=https://gateway-dev-630531001367.us-central1.run.app,HOSTNAME=0.0.0.0'
