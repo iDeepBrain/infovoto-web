@@ -27,7 +27,7 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.supabase.co",
+              "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.supabase.co https://sroppublico.jne.gob.pe",
               "font-src 'self'",
               `connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://*.supabase.co ${process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080"}`,
               "frame-src https://accounts.google.com",
