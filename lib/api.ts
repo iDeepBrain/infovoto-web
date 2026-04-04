@@ -16,7 +16,7 @@ function getGatewayUrl(): string {
   }
   return process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:2080";
 }
-const REQUEST_TIMEOUT_MS = 15000; // 15 seconds client-side timeout
+const REQUEST_TIMEOUT_MS = 30000; // 30s — allows for cold-start chain (gateway + MCP)
 
 // Custom error types for proper error handling in UI
 export class AuthError extends Error {

@@ -57,6 +57,7 @@ function renderMarkdown(text: string) {
   const lines = text.split("\n");
   const elements: React.ReactNode[] = [];
   let listItems: string[] = [];
+  let tableLines: string[] = [];
 
   const flushList = () => {
     if (listItems.length > 0) {
@@ -71,12 +72,58 @@ function renderMarkdown(text: string) {
     }
   };
 
+  const flushTable = () => {
+    if (tableLines.length < 2) {
+      tableLines.forEach((row, ri) => {
+        elements.push(<p key={`tp-${elements.length}-${ri}`} className="my-1">{formatInline(row)}</p>);
+      });
+      tableLines = [];
+      return;
+    }
+    const parseRow = (row: string) => row.split("|").filter((c) => c.trim()).map((c) => c.trim());
+    const headers = parseRow(tableLines[0]);
+    const dataStart = tableLines[1]?.includes("---") ? 2 : 1;
+    const rows = tableLines.slice(dataStart).map(parseRow);
+    elements.push(
+      <div key={`table-${elements.length}`} className="overflow-x-auto my-2">
+        <table className="min-w-full text-sm border-collapse">
+          <thead>
+            <tr className="border-b border-gray-600">
+              {headers.map((h, i) => (
+                <th key={i} className="px-3 py-1.5 text-left font-semibold text-amber-400">{formatInline(h)}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, ri) => (
+              <tr key={ri} className="border-b border-gray-700/50">
+                {row.map((cell, ci) => (
+                  <td key={ci} className="px-3 py-1.5">{formatInline(cell)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+    tableLines = [];
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (/^---+$/.test(line.trim())) {
       flushList();
+      flushTable();
       elements.push(<hr key={`hr-${i}`} className="my-2 border-gray-600" />);
       continue;
+    }
+    if (/^\|.*\|$/.test(line.trim())) {
+      flushList();
+      tableLines.push(line.trim());
+      continue;
+    }
+    if (tableLines.length > 0) {
+      flushTable();
     }
     if (/^[-*•]\s/.test(line.trim())) {
       listItems.push(line.trim().replace(/^[-*•]\s/, ""));
@@ -95,6 +142,7 @@ function renderMarkdown(text: string) {
     );
   }
   flushList();
+  flushTable();
   return elements;
 }
 
