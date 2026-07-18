@@ -190,6 +190,11 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Demo mode: the live backend (gateway + MCP + DB) was decommissioned to keep
+  // hosting cost at zero outside the election window. The full chatbot code is public.
+  // Set NEXT_PUBLIC_DEMO_MODE="false" to run against a real backend locally.
+  const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
+
   // Load consent state from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -221,6 +226,19 @@ export default function ChatPage() {
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setLoading(true);
+
+    if (DEMO_MODE) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "🦙 **Modo demo** — el backend en vivo (gateway + MCP + base de datos) fue archivado para mantener el costo de hosting en cero fuera del período electoral.\n\nEsta página es una **vitrina de portafolio**. El código completo del asistente — agente LLM, orquestación **MCP**, **RAG** sobre perfiles de candidatos y arquitectura hexagonal — es público en GitHub:\n\n👉 **github.com/iDeepBrain**\n\n¡Gracias por visitar Voti!",
+        },
+      ]);
+      setLoading(false);
+      return;
+    }
 
     try {
       const data: ChatResponse = await sendMessage(text);
@@ -268,8 +286,10 @@ export default function ChatPage() {
         <div className="flex-1">
           <h1 className="font-bold text-white text-base">VOTI</h1>
           <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            <span className="text-xs text-gray-400">En línea — Datos del JNE y ONPE</span>
+            <div className={`w-1.5 h-1.5 rounded-full ${DEMO_MODE ? "bg-amber-500" : "bg-green-500"}`} />
+            <span className="text-xs text-gray-400">
+              {DEMO_MODE ? "Modo demo — código en GitHub" : "En línea — Datos del JNE y ONPE"}
+            </span>
           </div>
         </div>
       </header>
