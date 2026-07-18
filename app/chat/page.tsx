@@ -233,7 +233,7 @@ export default function ChatPage() {
         {
           role: "assistant",
           content:
-            "🦙 **Modo demo** — el backend en vivo (gateway + MCP + base de datos) fue archivado para mantener el costo de hosting en cero fuera del período electoral.\n\nEsta página es una **vitrina de portafolio**. El código completo del asistente — agente LLM, orquestación **MCP**, **RAG** sobre perfiles de candidatos y arquitectura hexagonal — es público en GitHub:\n\n👉 **github.com/iDeepBrain**\n\n¡Gracias por visitar Voti!",
+            "🦙 **Demo mode** — the live backend (gateway + MCP + database) has been archived to keep hosting costs at zero outside the election window.\n\nThis page is a **portfolio showcase**. The full assistant code — LLM agent, **MCP** orchestration, **RAG** over candidate profiles, and hexagonal architecture — is public on GitHub:\n\n👉 **github.com/iDeepBrain**\n\n---\n\n🦙 **Modo demo** — el backend en vivo (gateway + MCP + base de datos) fue archivado para mantener el costo de hosting en cero fuera del período electoral.\n\nEsta página es una **vitrina de portafolio**; el código completo (agente LLM, orquestación MCP, RAG y arquitectura hexagonal) es público en GitHub.\n\n¡Gracias por visitar Voti! · Thanks for visiting!",
         },
       ]);
       setLoading(false);
